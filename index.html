@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pacefors Tracker</title>
+    <link rel="stylesheet" href="index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1 class="header-text">Forsen MC Speedrun Tracker</h1>
+            <img src="static/1528.avif" height="24" alt="15:28" style="vertical-align: text-bottom"/>
+            <img src="static/smugtime.avif" alt="SmugTime" style="vertical-align: text-bottom"/>
+        </div>
+        <div id="header-runs">
+        </div>
+    </div>
+
+    <div class="odds-container">
+        <h2>Split Odds</h2>
+        <div style="display: flex; gap: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <span>S2 Enters<br/><span id="s2-odds"></span></span>
+                <span>S2 Enter/Day<br/><span id="s2-day-odds"></span></span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <span>Blinds<br/><span id="blind-odds"></span></span>
+                <span>Blinds/Day<br/><span id="blind-day-odds"></span></span>
+            </div>
+        </div>
+    </div>
+    <div class="odds-container">
+        <h2>Calculator <img src="./static/ninjabrain.avif" height="20"></h2>
+        <!-- Chance of getting to S2 Before a date in under a specified time -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <span>Chance of
+                <select id="calc-type">
+                    <option value="s2">S2</option>
+                    <option value="blind">Blind</option>
+                    <option value="end">Ends</option>
+                </select><br/>
+                before <input type="date" id="calc-date"/><br/>
+                in under <input type="number" id="calc-minutes" min="0" value="30"/>:<input type="number" id="calc-seconds" min="0" max="59" value="0"/><br/>
+                <span id="calc-odds"></span>
+            </span>
+        </div>
+    </div>
+
+    <br/>
+
+    <div style="display: inline-block">
+        <h2>Average Splits per Day</h2>
+        <div style="width: 700px;">
+            <canvas id="avg-entry-chart" height="350"></canvas>
+        </div>
+    </div>
+
+    <div style="display: inline-block">
+        <h2>Splits by Run #</h2>
+        <div style="width: 700px;">
+            <canvas id="entry-chart" height="350"></canvas>
+        </div>
+    </div>
+
+    <br/>
+
+    <div style="text-align: left; display: inline-block">
+        <input type="checkbox" id="show-only-nether"/>
+        <label for="show-only-nether">Show Only Nether Entries</label>
+        <div id="runs"></div>
+        <div id="runs-tooltip"></div>
+    </div>
+
+    <script type="module">
+        import { RAW_DATA } from "./rawdata.js";
+        import {seconds} from "./js/utils.js";
+        import { buildRuns } from "./js/runlist.js";
+        import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
+        import {buildOdds} from "./js/odds.js";
+
+        const timerRegex = /^\d\d\.\d\d\.\d\d\d$/;
+        for (const day of RAW_DATA) {
+            // Remove rows with a clearly invalid timer or without hearts being present (not survival mode forsenCD)
+            day.data = day.data.filter(row => row.timer?.match(timerRegex) && Number(row.timer[3]) < 6);
+            //&& (row.heart_rgb[0] > 245 || (row.heart_rgb[0] > 57 && row.heart_rgb[0] < 64)));
+        }
+
+        for (const day of RAW_DATA) {
+            for (let i = 2; i < day.data.length - 2; i++) {
+                const s1 = seconds(day.data[i - 1]);
+                const s2 = seconds(day.data[i]);
+                const s3 = seconds(day.data[i + 1]);
+                // If 10+ sec timeskip forward, Skip
+                // If time goes backwards and next time goes forward again, Skip
+                // If time goes backwards and current time is more than 00:10, Skip
+                if ((s2 - s1 > 20) || (s2 < s1 && s3 > s1) || (s2 < s1 && s2 > 10)) {
+                    /*if ((Math.abs(s3 - s2) > 10 || Math.abs(s4 - s2) > 10)
+                    || (s2 < s1 && s3 > s1)
+                    || (filteredData[i - 1].timer[1] === "6" && filteredData[i].timer[1] === "8")) {*/
+                    //console.info("Timer skip", s2 - s1, "seconds", filteredData.slice(i - 5, i + 5).map(r => r.timer));
+                    day.data.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        const runs = [];
+        for (const day of RAW_DATA) {
+            let currentRun = [];
+            for (let i = 0; i < day.data.length; i++) {
+                const row = day.data[i];
+
+                if (i > 0 && (i === day.data.length - 1 || seconds(row) < seconds(day.data[i - 1]))) {
+                    runs.push({ "date": day.date, "vod": day.vod, data: currentRun });
+                    currentRun = [];
+                }
+
+                currentRun.push(row);
+            }
+        }
+
+        buildRuns(runs);
+        buildEntryChart(runs);
+        buildAvgEntryChart(runs);
+        buildOdds(runs);
+
+        // Init Header stats
+        document.getElementById("header-runs").innerHTML = `
+            <span>Runs: <span style="color: #55ee55">${runs.length}</span></span>
+            <span>Nethers: <span style="color: #ee5555">${runs.filter(r => r.data.find(d => d.achievement?.includes("Need"))).length}</span></span>
+            <span>Bastions: <span style="color: #635b55">${runs.filter(r => r.data.find(d => d.achievement?.includes("Those"))).length}</span></span>
+            <span>Forts: <span style="color: #7a0000">${runs.filter(r => r.data.find(d => d.achievement?.includes("Terri"))).length}</span></span>
+            <span>Blinds: <span style="color: #8855ee">
+                ${runs.filter(r => r.data.find(d => d.ninja?.includes("Certain"))
+            && r.data.find(d => d.achievement?.includes("Terri"))
+            && r.data.find(d => d.achievement?.includes("Those"))).length}
+            </span></span>
+            <span>Ends: <span style="color: #eeaa55">0</span></span>
+        `;
+    </script>
+</body>
+</html>

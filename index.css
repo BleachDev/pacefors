@@ -1,0 +1,155 @@
+* {
+    font-family: "JetBrains Mono", monospace;
+
+    --grid-x-offset: 220px;
+    --grid-x-per-minute: 45px;
+}
+
+body {
+    font-size: 14px;
+    margin: 0;
+    background-color: #181820;
+    color: #eee;
+    text-align: center;
+    color-scheme: dark;
+}
+
+a {
+    color: #a0a0ff;
+}
+
+h2 {
+    margin: 6px;
+}
+
+input {
+    background-color: #181820;
+    border: 1px solid #252540;
+    color: #eee;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+input[type="number"] {
+    width: 45px;
+}
+
+.header {
+    background-color: #252540;
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-text {
+    padding: 8px 12px;
+    margin: 0;
+    display: inline-block;
+}
+
+#header-runs {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 2px 20px;
+    text-align: right;
+    padding-right: 12px;
+}
+
+.odds-container {
+    background-color: #252540;
+    display: inline-block;
+    border-radius: 8px;
+    padding: 0 20px 10px 20px;
+    margin-top: 15px;
+}
+
+#s2-odds, #s2-day-odds {
+    color: #7a0000;
+}
+
+#blind-odds, #blind-day-odds {
+    color: #9040a0;
+}
+
+#calc-odds {
+    color: #8855ee;
+}
+
+#runs {
+    background-image: linear-gradient(
+            to right,
+            #181820 0 var(--grid-x-offset),
+            transparent var(--grid-x-offset)
+    ),
+    repeating-linear-gradient(
+            to bottom,
+            transparent 0 10px,
+            #181820 10px 20px
+    ),
+    repeating-linear-gradient(
+            to right,
+            transparent 0 calc(var(--grid-x-per-minute) * 5 - 2px),
+            rgba(90, 90, 90, 1) calc(var(--grid-x-per-minute) * 5 - 2px) calc(var(--grid-x-per-minute) * 5)
+    ),
+    repeating-linear-gradient(
+            to right,
+            transparent 0 calc(var(--grid-x-per-minute) - 1px),
+            rgba(255, 255, 255, 0.25) calc(var(--grid-x-per-minute) - 1px) var(--grid-x-per-minute)
+    );
+
+    background-position-x: 0, 0, var(--grid-x-offset), var(--grid-x-offset);
+}
+
+.run-label-container {
+    display: flex;
+    padding-left: calc(var(--grid-x-offset) + var(--grid-x-per-minute) / 2);
+    gap: 0;
+    padding-top: 3px;
+    font-size: 12px;
+    background-color: #252540;
+}
+
+.run-bar-container {
+    display: inline-block
+}
+
+.run-bar {
+    display: inline-block;
+    height: 10px;
+    transition-duration: 0.15s;
+}
+
+.run-bar:hover {
+    transform: scaleY(1.25);
+}
+
+.first {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.last {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.run-bar-desc {
+    color: #777;
+    font-size: 0.75em;
+    margin-left: 5px;
+}
+
+#runs-tooltip {
+    position: fixed;
+    pointer-events: none;
+    display: none;
+    padding: 4px 8px;
+    border: 1px solid #252540;
+    background: #181820;
+    color: #eee;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+}
