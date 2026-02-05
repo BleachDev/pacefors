@@ -97,6 +97,12 @@ function rebuildRuns(runs) {
             { w: blindTime, color: "#8855ee" },
         ].filter(s => s.w > 0);
 
+        const deathMessage = run.findLast(entry => entry.death?.includes("LUL"))?.death ?? "";
+        const deathIcon = deathMessage.includes("lava") ? `<img src="/static/hoppedin.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` :
+            deathMessage.includes("burn") ? `<img src="/static/forsenfire.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` :
+            deathMessage.includes("Pig") ? `<img src="/static/piglin.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` :
+                deathMessage.includes("Hog") ? `<img src="/static/hoglin.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` : deathMessage;
+
         runStr += `
                     <div>
                         <span style="display: inline-block; width: ${RUNS_MARGIN}px;">
@@ -108,7 +114,7 @@ function rebuildRuns(runs) {
                             style="width: ${s.w * (RUNS_PER_MINUTE / 60)}px; background-color: ${s.color};"
                           ></div>`).join("")}
                         </div>
-                        <span class="run-bar-desc">${run[run.length - 1].timer}</span>
+                        <span class="run-bar-desc">${deathIcon} ${run[run.length - 1].timer}</span>
                     </div>
                 `.replaceAll(/>\n\s+/g, ">");
     }
