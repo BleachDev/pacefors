@@ -69,7 +69,7 @@ export function buildEntryChart(runs) {
                     backgroundColor: "#635b5570"
                 },
                 {
-                    label: "Blind Entry",
+                    label: "Blind",
                     data: blindPoints,
                     showLine: true,
                     fill: "start",
@@ -178,7 +178,7 @@ export function buildAvgEntryChart(runs) {
                     backgroundColor: "#635b5570"
                 },
                 {
-                    label: "Blind Entry",
+                    label: "Blind",
                     data: dates.map(d => blindDays[d]),
                     showLine: true,
                     fill: "start",
