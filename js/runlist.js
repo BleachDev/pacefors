@@ -100,8 +100,9 @@ function rebuildRuns(runs) {
         const deathMessage = run.findLast(entry => entry.death?.includes("LUL"))?.death ?? "";
         const deathIcon = deathMessage.includes("lava") ? `<img src="/static/hoppedin.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` :
             deathMessage.includes("burn") ? `<img src="/static/forsenfire.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` :
+            deathMessage.includes("fell") ? `<img src="/static/gravity.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` :
             deathMessage.includes("Pig") ? `<img src="/static/piglin.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` :
-                deathMessage.includes("Hog") ? `<img src="/static/hoglin.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` : deathMessage;
+            deathMessage.includes("Hog") ? `<img src="/static/hoglin.avif" height="14" title="${deathMessage}" alt="${deathMessage}">` : deathMessage;
 
         runStr += `
                     <div>
