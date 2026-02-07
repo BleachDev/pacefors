@@ -78,7 +78,7 @@ export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, avgDayR
     recalc();
 }
 
-function getSplits(runs, dayLimit = 10) {
+function getSplits(runs, dayLimit = 11) {
     const s2Entries = {};
     const blinds = {};
     const totalRunCount = {};

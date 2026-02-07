@@ -9,8 +9,8 @@ import easyocr
 
 QUALITY = "1080p60"
 
-VOD_URL = "https://www.twitch.tv/videos/2689815522"
-START_TIMESTAMP = "00:12:00"
+VOD_URL = "https://www.twitch.tv/videos/2690562440"
+START_TIMESTAMP = "01:58:30"
 
 WIDTH = 1920
 HEIGHT = 1080
