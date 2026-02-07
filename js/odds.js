@@ -60,7 +60,7 @@ export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, avgDayR
 
         const fit = typeEl.value === "s2" ? s2Fit : typeEl.value === "blind" ? blindFit : null;
         if (!fit) {
-            outEl.innerHTML = `> No Data <img src="/static/hoppedin.avif" height="16"> <`;
+            outEl.innerHTML = `> No Data <img src="/static/forsenHoppedin.webp" height="16"> <`;
             return;
         }
 
