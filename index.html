@@ -15,14 +15,16 @@
 </head>
 <body>
     <div class="header">
-        <div>
+        <div style="flex: 1; text-align: left">
             <h1 class="header-text">Forsen MC Speedrun Tracker</h1>
             <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
             <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
-            <span style="color: #ee8080; font-size: 10px">Not all runs are loaded due to too much data for the broswer to load, Working on a fix!</span>
+            <div style="display: inline-block">
+                <span style="color: #ee8080; font-size: 10px">Not all runs are loaded due to too much<br/>data for the broswer to load, Working on a fix!</span>
+            </div>
         </div>
-        <div id="header-runs">
-        </div>
+        <div id="header-runs"></div>
+        <a href="https://github.com/BleachDev/pacefors" style="margin: 0 20px 0 10px"><img src="static/github.svg" height="28" alt="Source Code"/></a>
     </div>
 
     <div class="odds-container">
