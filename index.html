@@ -20,7 +20,7 @@
             <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
             <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
             <div style="display: inline-block">
-                <span style="color: #80ee80; font-size: 10px">v1.1<br>Data fixed!</span>
+                <span style="color: #80ee80; font-size: 10px">v1.1<br>Data fixed, strongholds added!</span>
             </div>
         </div>
         <div id="header-runs"></div>
@@ -38,16 +38,21 @@
                 <span>Blinds<br/><span id="blind-odds"></span></span>
                 <span>Chance of Blind/Day<br/><span id="blind-day-odds"></span></span>
             </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <span>Strongholds<br/><span id="stronghold-odds"></span></span>
+                <span>Chance of SH./Day<br/><span id="stronghold-day-odds"></span></span>
+            </div>
         </div>
     </div>
+
     <div class="odds-container">
-        <h2>Calculator <img src="./static/ninjabrain.webp" height="20"></h2>
-        <!-- Chance of getting to S2 Before a date in under a specified time -->
+        <h2>Calculator</h2>
         <div style="display: flex; flex-direction: column; gap: 10px;">
             <span>Chance of
                 <select id="calc-type">
-                    <option value="s2">S2</option>
+                    <option value="s2">Struct 2</option>
                     <option value="blind">Blind</option>
+                    <option value="stronghold">Stronghold</option>
                     <option value="end">End</option>
                 </select><br/>
                 before <input type="date" id="calc-date"/><br/>
@@ -99,7 +104,9 @@
             <span>Nethers: <span style="color: #ee5555">${runs.filter(r => r.nether).length}</span></span>
             <span>Bastions: <span style="color: #635b55">${runs.filter(r => r.bastion).length}</span></span>
             <span>Forts: <span style="color: #7a0000">${runs.filter(r => r.fort).length}</span></span>
+            <span></span>
             <span>Blinds: <span style="color: #8855ee">${runs.filter(r => r.blind).length}</span></span>
+            <span>Strongholds: <span style="color: #558877">${runs.filter(r => r.stronghold).length}</span></span>
             <span>Ends: <span style="color: #eeaa55">0</span></span>
         `;
     </script>

@@ -62,10 +62,11 @@ def main() -> None:
             s2 = seconds(day["data"][i    ]["timer"])
             s3 = seconds(day["data"][i + 1]["timer"])
 
-            # If 10+ sec timeskip forward, Skip
+            # If 80+ sec timeskip forward, Skip
+            # If 20+ sec timeskip forward and the next time isn't consistent, Skip
             # If time goes backwards and next time goes forward again, Skip
             # If time goes backwards and the new time is more than 00:10, Skip
-            if (s2 - s1 > 20) or (s2 < s1 < s3) or (s1 > s2 > 10):
+            if s2 - s1 > 80 or (s2 - s1 > 20 and not 0 < s3 - s2 < 2) or (s2 < s1 < s3) or (s1 > s2 > 10):
                 day["data"].pop(i)
             else:
                 i += 1
@@ -89,6 +90,7 @@ def main() -> None:
             if i > 0 and (i == len(day["data"]) - 1 or seconds(row["timer"]) < seconds(day["data"][i - 1]["timer"])):
                 bastion_i = _find_index(lambda r: "Those" in r.get("achievement", ""))
                 fort_i = _find_index(lambda r: "Terri" in r.get("achievement", ""))
+                blind_i = _find_index(lambda r: "Certain" in r.get("ninja", "")) if bastion_i > -1 and fort_i > -1 else -1
 
                 run = {
                     "date": day["date"],
@@ -96,7 +98,8 @@ def main() -> None:
                     "netherI": _find_index(lambda r: "Need" in r.get("achievement", "")),
                     "bastionI": bastion_i,
                     "fortI": fort_i,
-                    "blindI": _find_index(lambda r: "Certain" in r.get("ninja", "")) if bastion_i > -1 and fort_i > -1 else -1,
+                    "blindI": blind_i,
+                    "strongholdI": _find_index(lambda r: "ue Sp" in r.get("achievement", "") or "ye Sp" in r.get("achievement", "")) if blind_i > -1 else -1,
                     "data": current_run,
                 }
                 runs.append(run)
@@ -119,6 +122,7 @@ def main() -> None:
         if run["bastionI"] > -1: stripped_run["bastion"] = seconds(run["data"][run["bastionI"]]["timer"])
         if run["fortI"] > -1: stripped_run["fort"] = seconds(run["data"][run["fortI"]]["timer"])
         if run["blindI"] > -1: stripped_run["blind"] = seconds(run["data"][run["blindI"]]["timer"])
+        if run["strongholdI"] > -1: stripped_run["stronghold"] = seconds(run["data"][run["strongholdI"]]["timer"])
 
         death_msg = next((e["death"] for e in reversed(run["data"]) if "LUL" in (e.get("death") or "")), "")
         if death_msg:
@@ -128,7 +132,7 @@ def main() -> None:
         stripped_run["timestamps"] = []
         last_time = -5
         for row in run["data"]:
-            if seconds(row["timer"]) - last_time >= 5:
+            while seconds(row["timer"]) - last_time >= 5:
                 stripped_run["timestamps"].append(row["timestamp"])
                 last_time += 5
 

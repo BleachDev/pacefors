@@ -1,29 +1,34 @@
 import {fitLogNormal, logNormalCdfSeconds, toSeconds} from "./utils.js";
 
 export function buildOdds(runs) {
-    const [s2Entries, blinds,  totalRunCount] = getSplits(runs);
+    const [s2Entries, blinds,  strongholds, totalRunCount] = getSplits(runs);
 
     const s2Count = Object.values(s2Entries).reduce((a, b) => a + b.length, 0);
     const blindCount = Object.values(blinds).reduce((a, b) => a + b.length, 0);
+    const strongholdCount = Object.values(strongholds).reduce((a, b) => a + b.length, 0);
     const totalCount = Object.values(totalRunCount).reduce((a, b) => a + b, 0);
     const avgDayRuns = totalCount / Object.keys(totalRunCount).length;
 
     const s2ChancePerRun = s2Count / totalCount;
     const blindChancePerRun = blindCount / totalCount;
+    const strongholdChancePerRun = strongholdCount / totalCount;
 
     document.getElementById("s2-odds").textContent =
-        `${(s2ChancePerRun * 100).toFixed(1)}% (${s2Count}/${totalCount})`;
-
+        `${(s2ChancePerRun * 100).toFixed(2)}% (${s2Count}/${totalCount})`;
     document.getElementById("s2-day-odds").textContent =
-        `${((1 - Math.pow(1 - s2ChancePerRun, avgDayRuns)) * 100).toFixed(1)}%`;
+        `${((1 - Math.pow(1 - s2ChancePerRun, avgDayRuns)) * 100).toFixed(2)}%`;
 
     document.getElementById("blind-odds").textContent =
-        `${(blindChancePerRun * 100).toFixed(1)}% (${blindCount}/${totalCount})`;
-
+        `${(blindChancePerRun * 100).toFixed(2)}% (${blindCount}/${totalCount})`;
     document.getElementById("blind-day-odds").textContent =
-        `${((1 - Math.pow(1 - blindChancePerRun, avgDayRuns)) * 100).toFixed(1)}%`;
+        `${((1 - Math.pow(1 - blindChancePerRun, avgDayRuns)) * 100).toFixed(2)}%`;
 
-    buildCalculator(runs, s2ChancePerRun, blindChancePerRun, avgDayRuns);
+    document.getElementById("stronghold-odds").textContent =
+        `${(strongholdChancePerRun * 100).toFixed(2)}% (${strongholdCount}/${totalCount})`;
+    document.getElementById("stronghold-day-odds").textContent =
+        `${((1 - Math.pow(1 - strongholdChancePerRun, avgDayRuns)) * 100).toFixed(2)}%`;
+
+    buildCalculator(runs, s2ChancePerRun, blindChancePerRun, strongholdChancePerRun, avgDayRuns);
 }
 
 const typeEl = document.getElementById("calc-type");
@@ -32,11 +37,12 @@ const minEl = document.getElementById("calc-minutes");
 const secEl = document.getElementById("calc-seconds");
 const outEl = document.getElementById("calc-odds");
 
-export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, avgDayRuns) {
-    const [s2Entries, blinds] = getSplits(runs);
+export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, strongholdChancePerRun, avgDayRuns) {
+    const [s2Entries, blinds, strongholds] = getSplits(runs);
 
     const s2Fit = fitLogNormal(Object.values(s2Entries).flat());
     const blindFit = fitLogNormal(Object.values(blinds).flat());
+    const strongholdFit = fitLogNormal(Object.values(strongholds).flat());
 
     const recalc = () => {
         const cutoff = toSeconds(minEl.value, secEl.value);
@@ -55,13 +61,15 @@ export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, avgDayR
             return;
         }
 
-        const fit = typeEl.value === "s2" ? s2Fit : typeEl.value === "blind" ? blindFit : null;
+        const fit = typeEl.value === "s2" ? s2Fit : typeEl.value === "blind" ? blindFit : typeEl.value === "stronghold" ? strongholdFit : null;
         if (!fit) {
             outEl.innerHTML = `> No Data <img src="/static/forsenHoppedin.webp" height="16"> <`;
             return;
         }
 
-        const chancePerRun = typeEl.value === "s2" ? s2ChancePerRun : typeEl.value === "blind" ? blindChancePerRun : 0;
+        const chancePerRun = typeEl.value === "s2" ? s2ChancePerRun : typeEl.value === "blind"
+            ? blindChancePerRun : typeEl.value === "stronghold" ? strongholdChancePerRun : 0;
+
         const chancePerRunUnderCutoff = logNormalCdfSeconds(cutoff, fit.mu, fit.sigma);
         const chanceByDate = 1 - Math.pow(1 - (chancePerRunUnderCutoff * chancePerRun), avgDayRuns * daysFromNow);
         outEl.textContent =
@@ -75,9 +83,10 @@ export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, avgDayR
     recalc();
 }
 
-function getSplits(runs, dayLimit = 11) {
+function getSplits(runs, dayLimit = 12) {
     const s2Entries = {};
     const blinds = {};
+    const strongholds = {};
     const totalRunCount = {};
     for (let r = runs.length - 1; r >= 0; r--) {
         const run = runs[r];
@@ -91,12 +100,18 @@ function getSplits(runs, dayLimit = 11) {
             s2Entries[run.date].push(s2entry);
         }
 
-        const blind = s2entry !== null && run.blind > -1 ? run.blind : null;
+        const blind = s2entry !== null && run.blind ? run.blind : null;
         if (blind) {
             if (!blinds[run.date]) blinds[run.date] = [];
             blinds[run.date].push(blind);
         }
+
+        const stronghold = blind !== null && run.stronghold ? run.stronghold : null;
+        if (stronghold) {
+            if (!strongholds[run.date]) strongholds[run.date] = [];
+            strongholds[run.date].push(stronghold);
+        }
     }
 
-    return [ s2Entries, blinds, totalRunCount ];
+    return [ s2Entries, blinds, strongholds, totalRunCount ];
 }

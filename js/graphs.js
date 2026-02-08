@@ -17,6 +17,7 @@ export function buildEntryChart(runs) {
     const struct1Points = [];
     const struct2Points = [];
     const blindPoints = [];
+    const strongholdPoints = [];
 
     // Use same reverse ordering convention as buildRuns (latest first)
     for (let r = runs.length - 1; r > 0; r--) {
@@ -26,6 +27,7 @@ export function buildEntryChart(runs) {
         if (run.bastion || run.fort) struct1Points.push({ x: r, y: !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion) });
         if (run.bastion && run.fort) struct2Points.push({ x: r, y: Math.max(run.fort, run.bastion) });
         if (run.blind) blindPoints.push({ x: r, y: run.blind });
+            if (run.stronghold) strongholdPoints.push({ x: r, y: run.stronghold });
     }
 
     const ctx = document.getElementById("entry-chart").getContext("2d");
@@ -71,6 +73,15 @@ export function buildEntryChart(runs) {
                     borderColor: "#8855ee",
                     backgroundColor: "#8855ee70"
                 },
+                {
+                    label: "Stronghold Entry",
+                    data: strongholdPoints,
+                    showLine: true,
+                    fill: "start",
+                    pointBackgroundColor: "#558877",
+                    borderColor: "#558877",
+                    backgroundColor: "#55887770"
+                },
             ],
         },
         options: {
@@ -108,6 +119,7 @@ export function buildAvgEntryChart(runs) {
     const struct1Days = {};
     const struct2Days = {};
     const blindDays = {};
+    const strongholdDays = {};
 
     // Use same reverse ordering convention as buildRuns (latest first)
     for (let r = 0; r < runs.length; r++) {
@@ -117,10 +129,11 @@ export function buildAvgEntryChart(runs) {
         if (run.bastion || run.fort) pushOrCreate(struct1Days, run.date, !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion));
         if (run.bastion && run.fort) pushOrCreate(struct2Days, run.date, Math.max(run.fort, run.bastion));
         if (run.blind)  pushOrCreate(blindDays, run.date, run.blind);
+        if (run.stronghold) pushOrCreate(strongholdDays, run.date, run.stronghold);
     }
 
     // Average the times for each day
-    [netherDays, struct1Days, struct2Days, blindDays].forEach(dayObj => {
+    [netherDays, struct1Days, struct2Days, blindDays, strongholdDays].forEach(dayObj => {
         Object.entries(dayObj).forEach(([k, v]) => dayObj[k] = v.reduce((a, b) => a + b, 0) / v.length);
     });
 
@@ -169,6 +182,15 @@ export function buildAvgEntryChart(runs) {
                     pointBackgroundColor: "#8855ee",
                     borderColor: "#8855ee",
                     backgroundColor: "#8855ee70"
+                },
+                {
+                    label: "Stronghold Entry",
+                    data: dates.map(d => strongholdDays[d]),
+                    showLine: true,
+                    fill: "start",
+                    pointBackgroundColor: "#558877",
+                    borderColor: "#558877",
+                    backgroundColor: "#55887770"
                 },
             ],
         },

@@ -44,6 +44,7 @@ export function buildRuns(runs) {
         const secs = (e.clientX - rowRect.left) * (60 / RUNS_PER_MINUTE);
 
         // Find closest entry to clicked time
+        console.log(run, ~~(secs / 5), formatMMSS(secs));
         const timestamp = run.timestamps[~~(secs / 5)].replace(":", "h").replace(":", "m");
         window.open(`${run.vod}?t=${timestamp}s`, "_blank");
     });
@@ -76,13 +77,16 @@ function rebuildRuns(runs) {
             : Math.min(run.bastion, run.fort);
         const struct2Entry = run.bastion && run.fort ? Math.max(run.bastion, run.fort) : 0;
         const blindEntry = run.blind ?? 0;
+        const strongholdEntry = run.stronghold ?? 0;
 
         const lastTime = seconds(run.runTime);
-        const overworldTime = netherEntry > 0 ? netherEntry : lastTime;
-        const netherTime = netherEntry === 0 ? 0 : (struct1Entry > 0 ? struct1Entry - netherEntry : lastTime - netherEntry);
-        const struct1Time = struct1Entry === 0 ? 0 : (struct2Entry > 0 ? struct2Entry - struct1Entry : lastTime - struct1Entry);
-        const struct2Time = struct2Entry === 0 ? 0 : (blindEntry > 0 ? blindEntry - struct2Entry : lastTime - struct2Entry);
-        const blindTime = blindEntry === 0 ? 0 : lastTime - blindEntry;
+        const overworldTime = netherEntry ? netherEntry : lastTime;
+        const netherTime = netherEntry ? (struct1Entry > 0 ? struct1Entry - netherEntry : lastTime - netherEntry) : 0;
+        const struct1Time = struct1Entry ? (struct2Entry > 0 ? struct2Entry - struct1Entry : lastTime - struct1Entry) : 0;
+        const struct2Time = struct2Entry ? (blindEntry > 0 ? blindEntry - struct2Entry : lastTime - struct2Entry) : 0;
+        const blindTime = blindEntry ? (strongholdEntry > 0 ? strongholdEntry - blindEntry : lastTime - blindEntry) : 0;
+        const strongholdTime = strongholdEntry ? lastTime - strongholdEntry : 0;
+
 
         const segments = [
             { w: overworldTime, color: "#55ee55" },
@@ -90,14 +94,18 @@ function rebuildRuns(runs) {
             { w: struct1Time, color: run.fort < run.bastion ? "#7a0000" : "#635b55" },
             { w: struct2Time, color: run.fort > run.bastion ? "#7a0000" : "#635b55" },
             { w: blindTime, color: "#8855ee" },
+            { w: strongholdTime, color: "#558877" }
         ].filter(s => s.w > 0);
 
         const deathIcon = !run.death ? "" :
             run.death.includes("lava") ? `<img src="/static/forsenHoppedin.webp" height="14" title="${run.death}" alt="${run.death}">` :
             run.death.includes("burn") ? `<img src="/static/forsenFire.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("fell") ? `<img src="/static/forsenGravity.webp" height="14" title="${run.death}" alt="${run.death}">` :
+            run.death.includes("fell") || run.death.includes("ground") ? `<img src="/static/forsenGravity.webp" height="14" title="${run.death}" alt="${run.death}">` :
             run.death.includes("Pig") ? `<img src="/static/piglin.webp" height="14" title="${run.death}" alt="${run.death}">` :
             run.death.includes("Hog") ? `<img src="/static/hoglin.webp" height="14" title="${run.death}" alt="${run.death}">` :
+            run.death.includes("ither") ? `<img src="/static/wither.webp" height="14" title="${run.death}" alt="${run.death}">` :
+            run.death.includes("Skel") ? `<img src="/static/skeleton.webp" height="14" title="${run.death}" alt="${run.death}">` :
+            run.death.includes("Blaze") ? `<img src="/static/blaze.webp" height="14" title="${run.death}" alt="${run.death}">` :
                 `<span style="color: #ee8888">${run.death}</span>`;
 
         runStr += `
