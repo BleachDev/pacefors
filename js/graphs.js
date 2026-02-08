@@ -1,4 +1,4 @@
-import {seconds, formatMMSS, pushOrCreate} from "./utils.js";
+import {formatMMSS, pushOrCreate} from "./utils.js";
 
 Chart.defaults.borderColor = "#252540";
 Chart.defaults.color = "#999";
@@ -22,15 +22,10 @@ export function buildEntryChart(runs) {
     for (let r = runs.length - 1; r > 0; r--) {
         const run = runs[r];
 
-        // Use the run start timestamp for x
-        if (run.netherI > -1)
-            netherPoints.push({ x: r, y: seconds(run.data[run.netherI]) });
-        if (run.bastionI > -1 || run.fortI > -1)
-            struct1Points.push({ x: r, y: seconds(run.data[run.bastionI === -1 ? run.fortI : run.fortI === -1 ? run.bastionI : Math.min(run.fortI, run.bastionI)]) });
-        if (run.bastionI > -1 && run.fortI > -1)
-            struct2Points.push({ x: r, y: seconds(run.data[Math.max(run.fortI, run.bastionI)]) });
-        if (run.blindI > -1)
-            blindPoints.push({ x: r, y: seconds(run.data[run.blindI]) });
+        if (run.nether) netherPoints.push({ x: r, y: run.nether });
+        if (run.bastion || run.fort) struct1Points.push({ x: r, y: !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion) });
+        if (run.bastion && run.fort) struct2Points.push({ x: r, y: Math.max(run.fort, run.bastion) });
+        if (run.blind) blindPoints.push({ x: r, y: run.blind });
     }
 
     const ctx = document.getElementById("entry-chart").getContext("2d");
@@ -118,14 +113,10 @@ export function buildAvgEntryChart(runs) {
     for (let r = 0; r < runs.length; r++) {
         const run = runs[r];
 
-        if (run.netherI > -1)
-            pushOrCreate(netherDays, run.date, seconds(run.data[run.netherI]));
-        if (run.bastionI > -1 || run.fortI > -1)
-            pushOrCreate(struct1Days, run.date, seconds(run.data[run.bastionI === -1 ? run.fortI : run.fortI === -1 ? run.bastionI : Math.min(run.fortI, run.bastionI)]));
-        if (run.bastionI > -1 && run.fortI > -1)
-            pushOrCreate(struct2Days, run.date, seconds(run.data[Math.max(run.fortI, run.bastionI)]));
-        if (run.blindI > -1)
-            pushOrCreate(blindDays, run.date, seconds(run.data[run.blindI]));
+        if (run.nether) pushOrCreate(netherDays, run.date, run.nether);
+        if (run.bastion || run.fort) pushOrCreate(struct1Days, run.date, !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion));
+        if (run.bastion && run.fort) pushOrCreate(struct2Days, run.date, Math.max(run.fort, run.bastion));
+        if (run.blind)  pushOrCreate(blindDays, run.date, run.blind);
     }
 
     // Average the times for each day

@@ -16,9 +16,12 @@
 <body>
     <div class="header">
         <div style="flex: 1; text-align: left">
-            <h1 class="header-text">Forsen MC Speedrun Tracker</h1>
+            <h1 class="header-text">Forsen Speedrun Tracker</h1>
             <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
             <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
+            <div style="display: inline-block">
+                <span style="color: #80ee80; font-size: 10px">v1.1<br>Data fixed!</span>
+            </div>
         </div>
         <div id="header-runs"></div>
         <a href="https://github.com/BleachDev/pacefors" style="margin: 0 20px 0 10px"><img src="static/github.svg" height="28" alt="Source Code"/></a>
@@ -80,23 +83,23 @@
     </div>
 
     <script type="module">
-        import { RUNS } from "./data/runs.js";
+        import runs from "./data/stripped_runs.json" with { type: "json" };
         import { buildRuns } from "./js/runlist.js";
         import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
         import {buildOdds} from "./js/odds.js";
 
-        buildRuns(RUNS);
-        buildEntryChart(RUNS);
-        buildAvgEntryChart(RUNS);
-        buildOdds(RUNS);
+        buildRuns(runs);
+        buildEntryChart(runs);
+        buildAvgEntryChart(runs);
+        buildOdds(runs);
 
         // Init Header stats
         document.getElementById("header-runs").innerHTML = `
-            <span>Runs: <span style="color: #55ee55">${RUNS.length}</span></span>
-            <span>Nethers: <span style="color: #ee5555">${RUNS.filter(r => r.netherI > -1).length}</span></span>
-            <span>Bastions: <span style="color: #635b55">${RUNS.filter(r => r.bastionI > -1).length}</span></span>
-            <span>Forts: <span style="color: #7a0000">${RUNS.filter(r => r.fortI > -1).length}</span></span>
-            <span>Blinds: <span style="color: #8855ee">${RUNS.filter(r => r.blindI > -1).length}</span></span>
+            <span>Runs: <span style="color: #55ee55">${runs.length}</span></span>
+            <span>Nethers: <span style="color: #ee5555">${runs.filter(r => r.nether).length}</span></span>
+            <span>Bastions: <span style="color: #635b55">${runs.filter(r => r.bastion).length}</span></span>
+            <span>Forts: <span style="color: #7a0000">${runs.filter(r => r.fort).length}</span></span>
+            <span>Blinds: <span style="color: #8855ee">${runs.filter(r => r.blind).length}</span></span>
             <span>Ends: <span style="color: #eeaa55">0</span></span>
         `;
     </script>

@@ -1,4 +1,4 @@
-import {fitLogNormal, logNormalCdfSeconds, seconds, toSeconds} from "./utils.js";
+import {fitLogNormal, logNormalCdfSeconds, toSeconds} from "./utils.js";
 
 export function buildOdds(runs) {
     const [s2Entries, blinds,  totalRunCount] = getSplits(runs);
@@ -35,11 +35,8 @@ const outEl = document.getElementById("calc-odds");
 export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, avgDayRuns) {
     const [s2Entries, blinds] = getSplits(runs);
 
-    const s2Seconds = Object.values(s2Entries).flat().map(r => seconds(r));
-    const s2Fit = fitLogNormal(s2Seconds);
-
-    const blindSeconds = Object.values(blinds).flat().map(r => seconds(r));
-    const blindFit = fitLogNormal(blindSeconds);
+    const s2Fit = fitLogNormal(Object.values(s2Entries).flat());
+    const blindFit = fitLogNormal(Object.values(blinds).flat());
 
     const recalc = () => {
         const cutoff = toSeconds(minEl.value, secEl.value);
@@ -88,13 +85,13 @@ function getSplits(runs, dayLimit = 11) {
 
         totalRunCount[run.date] = (totalRunCount[run.date] ?? 0) + 1;
 
-        const s2entry = run.bastionI > -1 && run.fortI > -1 ? run.data[Math.max(run.bastionI, run.fortI)] : null;
+        const s2entry = run.bastion && run.fort ? Math.max(run.bastion, run.fort) : null;
         if (s2entry) {
             if (!s2Entries[run.date]) s2Entries[run.date] = [];
             s2Entries[run.date].push(s2entry);
         }
 
-        const blind = s2entry !== null && run.blindI > -1 ? run.data[run.blindI] : null;
+        const blind = s2entry !== null && run.blind > -1 ? run.blind : null;
         if (blind) {
             if (!blinds[run.date]) blinds[run.date] = [];
             blinds[run.date].push(blind);

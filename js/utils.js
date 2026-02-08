@@ -13,9 +13,9 @@ export function formatMMSS(totalSeconds) {
     return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
 }
 
-// Convert a run entry to total seconds as a number
-export function seconds(entry) {
-    const split = entry.timer.split(".");
+// Convert a run timer to total seconds as a number
+export function seconds(timer) {
+    const split = timer.split(".");
     return Number(split[0]) * 60 + Number(split[1]) + Number(split[2]) / 1000;
 }
 

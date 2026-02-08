@@ -38,8 +38,9 @@ def main() -> None:
         with open(path, "r", encoding="utf-8") as f:
             raw_data.append(json.load(f))
 
-    #with open(os.path.join(out_folder, "rawdata.js"), "w", encoding="utf-8") as out:
-    #    out.write("export const RAW_DATA = " + json.dumps(raw_data, separators=(",", ":")))
+    #with open(os.path.join(out_folder, "rawdata.json"), "w", encoding="utf-8") as out:
+    #    out.write(json.dumps(raw_data, separators=(",", ":")))
+
 
     # Filter invalid rows
     for day in raw_data:
@@ -50,6 +51,8 @@ def main() -> None:
                and int(row["timer"][3]) < 6
                # (row.heart_rgb[0] > 240 or 55 < row.heart_rgb[0] < 6)));
         ]
+        for row in day["data"]:
+            row.pop("heart_rgb", None)
 
     # Remove rows with invalid time skips
     for day in raw_data:
@@ -67,10 +70,11 @@ def main() -> None:
             else:
                 i += 1
 
-    #with open(os.path.join(out_folder, "filtereddata.js"), "w", encoding="utf-8") as out:
-    #    out.write("export const FILTERED_DATA = " + json.dumps(raw_data, separators=(",", ":")))
+    #with open(os.path.join(out_folder, "filtereddata.json"), "w", encoding="utf-8") as out:
+    #    out.write(json.dumps(raw_data, separators=(",", ":")))
 
-    # Build per-day runs
+
+    # Build Runs containing all the data for each run.
     runs: list[dict] = []
     for day in raw_data:
         current_run: list[dict] = []
@@ -100,8 +104,38 @@ def main() -> None:
 
             current_run.append(row)
 
-    with open(os.path.join(out_folder, "runs.js"), "w", encoding="utf-8") as out:
-        out.write("export const RUNS = " + json.dumps(runs, separators=(",", ":")))
+    #with open(os.path.join(out_folder, "runs.json"), "w", encoding="utf-8") as out:
+    #    out.write(json.dumps(runs, separators=(",", ":")))
+
+
+    stripped_runs: list[dict] = []
+    for run in runs:
+        stripped_run = {
+            "date":      run["date"],
+            "vod":       run["vod"],
+            "runTime":   run["data"][-1]["timer"],
+        }
+        if run["netherI"] > -1: stripped_run["nether"] = seconds(run["data"][run["netherI"]]["timer"])
+        if run["bastionI"] > -1: stripped_run["bastion"] = seconds(run["data"][run["bastionI"]]["timer"])
+        if run["fortI"] > -1: stripped_run["fort"] = seconds(run["data"][run["fortI"]]["timer"])
+        if run["blindI"] > -1: stripped_run["blind"] = seconds(run["data"][run["blindI"]]["timer"])
+
+        death_msg = next((e["death"] for e in reversed(run["data"]) if "LUL" in (e.get("death") or "")), "")
+        if death_msg:
+            stripped_run["death"] = death_msg
+
+        # List of vod timestamps every 5 IGT timer seconds
+        stripped_run["timestamps"] = []
+        last_time = -5
+        for row in run["data"]:
+            if seconds(row["timer"]) - last_time >= 5:
+                stripped_run["timestamps"].append(row["timestamp"])
+                last_time += 5
+
+        stripped_runs.append(stripped_run)
+
+    with open(os.path.join(out_folder, "stripped_runs.json"), "w", encoding="utf-8") as out:
+        out.write(json.dumps(stripped_runs, separators=(",", ":")))
 
 if __name__ == "__main__":
     main()
