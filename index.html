@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pacefors Tracker</title>
     <link rel="stylesheet" href="index.css"/>
-    <link rel="icon" type="image/png" href="static/hoppedin.webp"/>
+    <link rel="icon" type="image/png" href="static/SmugTime.webp"/>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,9 +19,6 @@
             <h1 class="header-text">Forsen MC Speedrun Tracker</h1>
             <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
             <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
-            <div style="display: inline-block">
-                <span style="color: #ee8080; font-size: 10px">Not all runs are loaded due to too much<br/>data for the broswer to load, Working on a fix!</span>
-            </div>
         </div>
         <div id="header-runs"></div>
         <a href="https://github.com/BleachDev/pacefors" style="margin: 0 20px 0 10px"><img src="static/github.svg" height="28" alt="Source Code"/></a>
@@ -83,69 +80,23 @@
     </div>
 
     <script type="module">
-        import { RAW_DATA } from "./rawdata.js";
-        import {seconds} from "./js/utils.js";
+        import { RUNS } from "./data/runs.js";
         import { buildRuns } from "./js/runlist.js";
         import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
         import {buildOdds} from "./js/odds.js";
 
-        const timerRegex = /^\d\d\.\d\d\.\d\d\d$/;
-        for (const day of RAW_DATA) {
-            // Remove rows with a clearly invalid timer or without hearts being present (not survival mode forsenCD)
-            day.data = day.data.filter(row => row.timer?.match(timerRegex) && Number(row.timer[3]) < 6);
-            //&& (row.heart_rgb[0] > 245 || (row.heart_rgb[0] > 57 && row.heart_rgb[0] < 64)));
-        }
-
-        for (const day of RAW_DATA) {
-            for (let i = 2; i < day.data.length - 2; i++) {
-                const s1 = seconds(day.data[i - 1]);
-                const s2 = seconds(day.data[i]);
-                const s3 = seconds(day.data[i + 1]);
-                // If 10+ sec timeskip forward, Skip
-                // If time goes backwards and next time goes forward again, Skip
-                // If time goes backwards and current time is more than 00:10, Skip
-                if ((s2 - s1 > 20) || (s2 < s1 && s3 > s1) || (s2 < s1 && s2 > 10)) {
-                    /*if ((Math.abs(s3 - s2) > 10 || Math.abs(s4 - s2) > 10)
-                    || (s2 < s1 && s3 > s1)
-                    || (filteredData[i - 1].timer[1] === "6" && filteredData[i].timer[1] === "8")) {*/
-                    //console.info("Timer skip", s2 - s1, "seconds", filteredData.slice(i - 5, i + 5).map(r => r.timer));
-                    day.data.splice(i, 1);
-                    i--;
-                }
-            }
-        }
-
-        const runs = [];
-        for (const day of RAW_DATA) {
-            let currentRun = [];
-            for (let i = 0; i < day.data.length; i++) {
-                const row = day.data[i];
-
-                if (i > 0 && (i === day.data.length - 1 || seconds(row) < seconds(day.data[i - 1]))) {
-                    runs.push({ "date": day.date, "vod": day.vod, data: currentRun });
-                    currentRun = [];
-                }
-
-                currentRun.push(row);
-            }
-        }
-
-        buildRuns(runs);
-        buildEntryChart(runs);
-        buildAvgEntryChart(runs);
-        buildOdds(runs);
+        buildRuns(RUNS);
+        buildEntryChart(RUNS);
+        buildAvgEntryChart(RUNS);
+        buildOdds(RUNS);
 
         // Init Header stats
         document.getElementById("header-runs").innerHTML = `
-            <span>Runs: <span style="color: #55ee55">${runs.length}</span></span>
-            <span>Nethers: <span style="color: #ee5555">${runs.filter(r => r.data.find(d => d.achievement?.includes("Need"))).length}</span></span>
-            <span>Bastions: <span style="color: #635b55">${runs.filter(r => r.data.find(d => d.achievement?.includes("Those"))).length}</span></span>
-            <span>Forts: <span style="color: #7a0000">${runs.filter(r => r.data.find(d => d.achievement?.includes("Terri"))).length}</span></span>
-            <span>Blinds: <span style="color: #8855ee">
-                ${runs.filter(r => r.data.find(d => d.ninja?.includes("Certain"))
-            && r.data.find(d => d.achievement?.includes("Terri"))
-            && r.data.find(d => d.achievement?.includes("Those"))).length}
-            </span></span>
+            <span>Runs: <span style="color: #55ee55">${RUNS.length}</span></span>
+            <span>Nethers: <span style="color: #ee5555">${RUNS.filter(r => r.netherI > -1).length}</span></span>
+            <span>Bastions: <span style="color: #635b55">${RUNS.filter(r => r.bastionI > -1).length}</span></span>
+            <span>Forts: <span style="color: #7a0000">${RUNS.filter(r => r.fortI > -1).length}</span></span>
+            <span>Blinds: <span style="color: #8855ee">${RUNS.filter(r => r.blindI > -1).length}</span></span>
             <span>Ends: <span style="color: #eeaa55">0</span></span>
         `;
     </script>

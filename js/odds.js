@@ -88,14 +88,13 @@ function getSplits(runs, dayLimit = 11) {
 
         totalRunCount[run.date] = (totalRunCount[run.date] ?? 0) + 1;
 
-        const s2entry = run.data.find(d => d.achievement?.includes("Terri"))
-                     && run.data.find(d => d.achievement?.includes("Those"));
+        const s2entry = run.bastionI > -1 && run.fortI > -1 ? run.data[Math.max(run.bastionI, run.fortI)] : null;
         if (s2entry) {
             if (!s2Entries[run.date]) s2Entries[run.date] = [];
             s2Entries[run.date].push(s2entry);
         }
 
-        const blind = !s2entry ? null : run.data.find(d => d.ninja?.includes("Certain"));
+        const blind = s2entry !== null && run.blindI > -1 ? run.data[run.blindI] : null;
         if (blind) {
             if (!blinds[run.date]) blinds[run.date] = [];
             blinds[run.date].push(blind);

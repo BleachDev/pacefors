@@ -1,4 +1,4 @@
-import {seconds, formatMMSS} from "./utils.js";
+import {seconds, formatMMSS, pushOrCreate} from "./utils.js";
 
 Chart.defaults.borderColor = "#252540";
 Chart.defaults.color = "#999";
@@ -20,18 +20,17 @@ export function buildEntryChart(runs) {
 
     // Use same reverse ordering convention as buildRuns (latest first)
     for (let r = runs.length - 1; r > 0; r--) {
-        const run = runs[r].data;
-
-        const netherI = run.findIndex(entry => entry.achievement?.includes("Need"));
-        const bastionI = run.findIndex(entry => entry.achievement?.includes("Those"));
-        const fortI = run.findIndex(entry => entry.achievement?.includes("Terri"));
-        const blindI = run.findIndex(entry => entry.ninja?.includes("Certain"));
+        const run = runs[r];
 
         // Use the run start timestamp for x
-        if (netherI > -1) netherPoints.push({ x: r, y: seconds(run[netherI]) });
-        if (bastionI > -1 || fortI > -1) struct1Points.push({ x: r, y: seconds(run[bastionI === -1 ? fortI : fortI === -1 ? bastionI : Math.min(fortI, bastionI)]) });
-        if (bastionI > -1 && fortI > -1) struct2Points.push({ x: r, y: seconds(run[Math.max(fortI, bastionI)]) });
-        if (blindI > -1 && bastionI > -1 && fortI > -1) blindPoints.push({ x: r, y: seconds(run[blindI]) });
+        if (run.netherI > -1)
+            netherPoints.push({ x: r, y: seconds(run.data[run.netherI]) });
+        if (run.bastionI > -1 || run.fortI > -1)
+            struct1Points.push({ x: r, y: seconds(run.data[run.bastionI === -1 ? run.fortI : run.fortI === -1 ? run.bastionI : Math.min(run.fortI, run.bastionI)]) });
+        if (run.bastionI > -1 && run.fortI > -1)
+            struct2Points.push({ x: r, y: seconds(run.data[Math.max(run.fortI, run.bastionI)]) });
+        if (run.blindI > -1)
+            blindPoints.push({ x: r, y: seconds(run.data[run.blindI]) });
     }
 
     const ctx = document.getElementById("entry-chart").getContext("2d");
@@ -117,22 +116,16 @@ export function buildAvgEntryChart(runs) {
 
     // Use same reverse ordering convention as buildRuns (latest first)
     for (let r = 0; r < runs.length; r++) {
-        const run = runs[r].data;
+        const run = runs[r];
 
-        const netherI = run.findIndex(entry => entry.achievement?.includes("Need"));
-        const bastionI = run.findIndex(entry => entry.achievement?.includes("Those"));
-        const fortI = run.findIndex(entry => entry.achievement?.includes("Terri"));
-        const blindI = run.findIndex(entry => entry.ninja?.includes("Certain"));
-
-        if (netherDays[runs[r].date] === undefined) netherDays[runs[r].date] = [];
-        if (struct1Days[runs[r].date] === undefined) struct1Days[runs[r].date] = [];
-        if (struct2Days[runs[r].date] === undefined) struct2Days[runs[r].date] = [];
-        if (blindDays[runs[r].date] === undefined) blindDays[runs[r].date] = [];
-
-        if (netherI > -1) netherDays[runs[r].date].push(seconds(run[netherI]));
-        if (bastionI > -1 || fortI > -1) struct1Days[runs[r].date].push(seconds(run[bastionI === -1 ? fortI : fortI === -1 ? bastionI : Math.min(fortI, bastionI)]));
-        if (bastionI > -1 && fortI > -1) struct2Days[runs[r].date].push(seconds(run[Math.max(fortI, bastionI)]));
-        if (blindI > -1 && bastionI > -1 && fortI > -1) blindDays[runs[r].date].push(seconds(run[blindI]));
+        if (run.netherI > -1)
+            pushOrCreate(netherDays, run.date, seconds(run.data[run.netherI]));
+        if (run.bastionI > -1 || run.fortI > -1)
+            pushOrCreate(struct1Days, run.date, seconds(run.data[run.bastionI === -1 ? run.fortI : run.fortI === -1 ? run.bastionI : Math.min(run.fortI, run.bastionI)]));
+        if (run.bastionI > -1 && run.fortI > -1)
+            pushOrCreate(struct2Days, run.date, seconds(run.data[Math.max(run.fortI, run.bastionI)]));
+        if (run.blindI > -1)
+            pushOrCreate(blindDays, run.date, seconds(run.data[run.blindI]));
     }
 
     // Average the times for each day

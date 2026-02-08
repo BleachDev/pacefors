@@ -1,14 +1,10 @@
-/*function parseTimestamp(ts) {
-    // "Feb 03 02:14:16" -> Date in local time (assumes current year)
-    const [, monStr, dd, HH, MM, SS] = ts.match(/^([A-Za-z]{3})\s+(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-    const months = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
-    const month = months[monStr];
-    if (month == null) return null;
+// Push a value to an array in an object of arrays, creating the array if it doesn't exist
+export function pushOrCreate(obj, key, val) {
+    if (obj[key] === undefined) obj[key] = [];
+    obj[key].push(val);
+}
 
-    const year = new Date().getFullYear();
-    return new Date(year, month, Number(dd), 16 + Number(HH), Number(MM), Number(SS));
-}*/
-
+// Format a number of seconds as MM:SS, rounding to the nearest second
 export function formatMMSS(totalSeconds) {
     if (!Number.isFinite(totalSeconds)) return "";
     const s = Math.round(totalSeconds); // ticks are fine as whole seconds
@@ -17,6 +13,7 @@ export function formatMMSS(totalSeconds) {
     return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
 }
 
+// Convert a run entry to total seconds as a number
 export function seconds(entry) {
     const split = entry.timer.split(".");
     return Number(split[0]) * 60 + Number(split[1]) + Number(split[2]) / 1000;

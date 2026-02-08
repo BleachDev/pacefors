@@ -66,38 +66,35 @@ function rebuildRuns(runs) {
 
     let runStr = "";
     for (let r = runs.length - 1; r > 0; r--) {
-        const run = runs[r].data;
-        const netherI = run.findIndex(entry => entry.achievement?.includes("Need"));
-        const bastionI = run.findIndex(entry => entry.achievement?.includes("Those"));
-        const fortI = run.findIndex(entry => entry.achievement?.includes("Terri"));
-        const blindI = run.findIndex(entry => entry.ninja?.includes("Certain"));
+        const run = runs[r];
 
-        if (document.getElementById("show-only-nether").checked && netherI === -1) {
+        if (document.getElementById("show-only-nether").checked && run.netherI === -1)
             continue;
-        }
 
-        const netherEntry = netherI > -1 ? seconds(run[netherI]) : 0;
-        const struct1Entry = bastionI > -1 && fortI === -1 ? seconds(run[bastionI])
-            : fortI > -1 && bastionI === -1 ? seconds(run[fortI])
-                : bastionI !== -1 && fortI !== -1 ? seconds(run[Math.min(bastionI, fortI)]) : 0;
-        const struct2Entry = bastionI !== -1 && fortI !== -1 ? seconds(run[Math.max(bastionI, fortI)]) : 0;
-        const blindEntry = blindI > -1 && struct2Entry > 0 ? seconds(run[blindI]) : 0;
+        const netherEntry = run.netherI > -1 ? seconds(run.data[run.netherI]) : 0;
+        const struct1Entry = run.bastionI === -1 && run.fortI === -1 ? 0
+            : run.fortI === -1 ? seconds(run.data[run.bastionI])
+            : run.bastionI === -1 ? seconds(run.data[run.fortI])
+            : seconds(run.data[Math.min(run.bastionI, run.fortI)]);
+        const struct2Entry = run.bastionI > -1 && run.fortI > -1 ? seconds(run.data[Math.max(run.bastionI, run.fortI)]) : 0;
+        const blindEntry = run.blindI > -1 ? seconds(run.data[run.blindI]) : 0;
 
-        const overworldTime = netherEntry > 0 ? netherEntry : seconds(run[run.length - 1]);
-        const netherTime = netherEntry === 0 ? 0 : (struct1Entry > 0 ? struct1Entry - netherEntry : seconds(run[run.length - 1]) - netherEntry);
-        const struct1Time = struct1Entry === 0 ? 0 : (struct2Entry > 0 ? struct2Entry - struct1Entry : seconds(run[run.length - 1]) - struct1Entry);
-        const struct2Time = struct2Entry === 0 ? 0 : (blindEntry > 0 ? blindEntry - struct2Entry : seconds(run[run.length - 1]) - struct2Entry);
-        const blindTime = blindEntry === 0 ? 0 : seconds(run[run.length - 1]) - blindEntry;
+        const lastTime = seconds(run.data[run.data.length - 1]);
+        const overworldTime = netherEntry > 0 ? netherEntry : lastTime;
+        const netherTime = netherEntry === 0 ? 0 : (struct1Entry > 0 ? struct1Entry - netherEntry : lastTime - netherEntry);
+        const struct1Time = struct1Entry === 0 ? 0 : (struct2Entry > 0 ? struct2Entry - struct1Entry : lastTime - struct1Entry);
+        const struct2Time = struct2Entry === 0 ? 0 : (blindEntry > 0 ? blindEntry - struct2Entry : lastTime - struct2Entry);
+        const blindTime = blindEntry === 0 ? 0 : lastTime - blindEntry;
 
         const segments = [
             { w: overworldTime, color: "#55ee55" },
             { w: netherTime, color: "#ee5555" },
-            { w: struct1Time, color: fortI > -1 && struct1Entry === seconds(run[fortI]) ? "#7a0000" : "#635b55" },
-            { w: struct2Time, color: fortI > -1 && struct2Entry === seconds(run[fortI]) ? "#7a0000" : "#635b55" },
+            { w: struct1Time, color: run.fortI < run.bastionI ? "#7a0000" : "#635b55" },
+            { w: struct2Time, color: run.fortI > run.bastionI ? "#7a0000" : "#635b55" },
             { w: blindTime, color: "#8855ee" },
         ].filter(s => s.w > 0);
 
-        const deathMessage = run.findLast(entry => entry.death?.includes("LUL"))?.death ?? "";
+        const deathMessage = run.data.findLast(entry => entry.death?.includes("LUL"))?.death ?? "";
         const deathIcon = deathMessage.includes("lava") ? `<img src="/static/forsenHoppedin.webp" height="14" title="${deathMessage}" alt="${deathMessage}">` :
             deathMessage.includes("burn") ? `<img src="/static/forsenFire.webp" height="14" title="${deathMessage}" alt="${deathMessage}">` :
             deathMessage.includes("fell") ? `<img src="/static/forsenGravity.webp" height="14" title="${deathMessage}" alt="${deathMessage}">` :
@@ -108,7 +105,7 @@ function rebuildRuns(runs) {
         runStr += `
                     <div>
                         <span style="display: inline-block; width: ${RUNS_MARGIN}px;">
-                            #${r} - <a target="_blank" href="${runs[r].vod}?t=${run[0].timestamp.replace(":", "h").replace(":", "m")}s">${runs[r].date} ${run[0].timestamp}</a>
+                            #${r} - <a target="_blank" href="${runs[r].vod}?t=${run.data[0].timestamp.replace(":", "h").replace(":", "m")}s">${run.date} ${run.data[0].timestamp}</a>
                         </span>
                         <div class="run-bar-container" data-run="${r}">
                         ${segments.map((s, i) => `<div
@@ -116,7 +113,7 @@ function rebuildRuns(runs) {
                             style="width: ${s.w * (RUNS_PER_MINUTE / 60)}px; background-color: ${s.color};"
                           ></div>`).join("")}
                         </div>
-                        <span class="run-bar-desc">${deathIcon} ${run[run.length - 1].timer}</span>
+                        <span class="run-bar-desc">${deathIcon} ${run.data[run.data.length - 1].timer}</span>
                     </div>
                 `.replaceAll(/>\n\s+/g, ">");
     }
