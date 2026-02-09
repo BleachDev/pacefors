@@ -1,4 +1,4 @@
-import {formatMMSS, pushOrCreate} from "./utils.js";
+import {C_BASTION, C_BLIND, C_FORT, C_NETHER, C_OVERWORLD, C_STRONGHOLD, formatMMSS, pushOrCreate} from "./utils.js";
 
 Chart.defaults.borderColor = "#252540";
 Chart.defaults.color = "#999";
@@ -42,45 +42,45 @@ export function buildEntryChart(runs) {
                     data: netherPoints,
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#ee5555",
-                    borderColor: "#ee5555",
-                    backgroundColor: "#55ee5570"
+                    pointBackgroundColor: C_NETHER,
+                    borderColor: C_NETHER,
+                    backgroundColor: C_OVERWORLD + "70"
                 },
                 {
                     label: "Struct 1 Entry",
                     data: struct1Points,
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#635b55",
-                    borderColor: "#635b55",
-                    backgroundColor: "#ee555570"
+                    pointBackgroundColor: C_BASTION,
+                    borderColor: C_BASTION,
+                    backgroundColor: C_NETHER + "70"
                 },
                 {
                     label: "Struct 2 Entry",
                     data: struct2Points,
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#7a0000",
-                    borderColor: "#7a0000",
-                    backgroundColor: "#635b5570"
+                    pointBackgroundColor: C_FORT,
+                    borderColor: C_FORT,
+                    backgroundColor: C_BASTION + "70"
                 },
                 {
                     label: "Blind",
                     data: blindPoints,
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#8855ee",
-                    borderColor: "#8855ee",
-                    backgroundColor: "#8855ee70"
+                    pointBackgroundColor: C_BLIND,
+                    borderColor: C_BLIND,
+                    backgroundColor: C_FORT + "70"
                 },
                 {
                     label: "Stronghold Entry",
                     data: strongholdPoints,
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#558877",
-                    borderColor: "#558877",
-                    backgroundColor: "#55887770"
+                    pointBackgroundColor: C_STRONGHOLD,
+                    borderColor: C_STRONGHOLD,
+                    backgroundColor: C_BLIND + "70"
                 },
             ],
         },
@@ -152,45 +152,45 @@ export function buildAvgEntryChart(runs) {
                     data: dates.map(d => netherDays[d]),
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#ee5555",
-                    borderColor: "#ee5555",
-                    backgroundColor: "#55ee5570"
+                    pointBackgroundColor: C_NETHER,
+                    borderColor: C_NETHER,
+                    backgroundColor: C_OVERWORLD + "70"
                 },
                 {
                     label: "Struct 1 Entry",
                     data: dates.map(d => struct1Days[d]),
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#635b55",
-                    borderColor: "#635b55",
-                    backgroundColor: "#ee555570",
+                    pointBackgroundColor: C_BASTION,
+                    borderColor: C_BASTION,
+                    backgroundColor: C_NETHER + "70"
                 },
                 {
                     label: "Struct 2 Entry",
                     data: dates.map(d => struct2Days[d]),
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#7a0000",
-                    borderColor: "#7a0000",
-                    backgroundColor: "#635b5570"
+                    pointBackgroundColor: C_FORT,
+                    borderColor: C_FORT,
+                    backgroundColor: C_BASTION + "70"
                 },
                 {
                     label: "Blind",
                     data: dates.map(d => blindDays[d]),
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#8855ee",
-                    borderColor: "#8855ee",
-                    backgroundColor: "#8855ee70"
+                    pointBackgroundColor: C_BLIND,
+                    borderColor: C_BLIND,
+                    backgroundColor: C_FORT + "70"
                 },
                 {
                     label: "Stronghold Entry",
                     data: dates.map(d => strongholdDays[d]),
                     showLine: true,
                     fill: "start",
-                    pointBackgroundColor: "#558877",
-                    borderColor: "#558877",
-                    backgroundColor: "#55887770"
+                    pointBackgroundColor: C_STRONGHOLD,
+                    borderColor: C_STRONGHOLD,
+                    backgroundColor: C_BLIND + "70"
                 },
             ],
         },

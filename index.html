@@ -92,6 +92,7 @@
         import { buildRuns } from "./js/runlist.js";
         import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
         import {buildOdds} from "./js/odds.js";
+        import {C_BASTION, C_FORT, C_NETHER, C_BLIND, C_STRONGHOLD} from "./js/utils.js";
 
         buildRuns(runs);
         buildEntryChart(runs);
@@ -101,12 +102,12 @@
         // Init Header stats
         document.getElementById("header-runs").innerHTML = `
             <span>Runs: <span style="color: #55ee55">${runs.length}</span></span>
-            <span>Nethers: <span style="color: #ee5555">${runs.filter(r => r.nether).length}</span></span>
-            <span>Bastions: <span style="color: #635b55">${runs.filter(r => r.bastion).length}</span></span>
-            <span>Forts: <span style="color: #7a0000">${runs.filter(r => r.fort).length}</span></span>
+            <span>Nethers: <span style="color: ${C_NETHER}">${runs.filter(r => r.nether).length}</span></span>
+            <span>Bastions: <span style="color: ${C_BASTION}">${runs.filter(r => r.bastion).length}</span></span>
+            <span>Forts: <span style="color: ${C_FORT}">${runs.filter(r => r.fort).length}</span></span>
             <span></span>
-            <span>Blinds: <span style="color: #8855ee">${runs.filter(r => r.blind).length}</span></span>
-            <span>Strongholds: <span style="color: #558877">${runs.filter(r => r.stronghold).length}</span></span>
+            <span>Blinds: <span style="color: ${C_BLIND}">${runs.filter(r => r.blind).length}</span></span>
+            <span>Strongholds: <span style="color: ${C_STRONGHOLD}">${runs.filter(r => r.stronghold).length}</span></span>
             <span>Ends: <span style="color: #eeaa55">0</span></span>
         `;
     </script>

@@ -1,6 +1,15 @@
 * {
     font-family: "JetBrains Mono", monospace;
 
+    --background: #181820;
+    --background-accent: #252540;
+
+    --nether: #ee5555;
+    --bastion: #635b55;
+    --fort: #7a0000;
+    --blind: #8855ee;
+    --stronghold: #558877;
+
     --grid-x-offset: 220px;
     --grid-x-per-minute: 45px;
 }
@@ -23,8 +32,8 @@ h2 {
 }
 
 input {
-    background-color: #181820;
-    border: 1px solid #252540;
+    background-color: var(--background);
+    border: 1px solid var(--background-accent);
     color: #eee;
     padding: 2px;
     border-radius: 4px;
@@ -35,7 +44,7 @@ input[type="number"] {
 }
 
 .header {
-    background-color: #252540;
+    background-color: var(--background-accent);
     position: sticky;
     top: 0;
     display: flex;
@@ -58,7 +67,7 @@ input[type="number"] {
 }
 
 .odds-container {
-    background-color: #252540;
+    background-color: var(--background-accent);
     display: inline-block;
     border-radius: 8px;
     padding: 0 20px 10px 20px;
@@ -66,31 +75,31 @@ input[type="number"] {
 }
 
 #s2-odds, #s2-day-odds {
-    color: #7a0000;
+    color: var(--fort)
 }
 
 #blind-odds, #blind-day-odds {
-    color: #9040a0;
+    color: var(--blind);
 }
 
 #stronghold-odds, #stronghold-day-odds {
-    color: #558877;
+    color: var(--stronghold);
 }
 
 #calc-odds {
-    color: #8855ee;
+    color: #eeee40;
 }
 
 #runs {
     background-image: linear-gradient(
             to right,
-            #181820 0 var(--grid-x-offset),
+            var(--background) 0 var(--grid-x-offset),
             transparent var(--grid-x-offset)
     ),
     repeating-linear-gradient(
             to bottom,
             transparent 0 10px,
-            #181820 10px 20px
+            var(--background) 10px 20px
     ),
     repeating-linear-gradient(
             to right,
@@ -112,7 +121,7 @@ input[type="number"] {
     gap: 0;
     padding-top: 3px;
     font-size: 12px;
-    background-color: #252540;
+    background-color: var(--background-accent);
 }
 
 .run-bar-container {
@@ -148,12 +157,10 @@ input[type="number"] {
 #runs-tooltip {
     position: fixed;
     pointer-events: none;
-    display: none;
     padding: 4px 8px;
-    border: 1px solid #252540;
-    background: #181820;
+    border: 1px solid var(--background-accent);
+    background: var(--background);
     color: #eee;
     border-radius: 6px;
     font-size: 12px;
-    white-space: nowrap;
 }

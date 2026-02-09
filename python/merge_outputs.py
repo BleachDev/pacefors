@@ -49,7 +49,7 @@ def main() -> None:
             row for row in day["data"]
             if TIMER_REGEX.match(row.get("timer", ""))
                and int(row["timer"][3]) < 6
-               # (row.heart_rgb[0] > 240 or 55 < row.heart_rgb[0] < 6)));
+               and (row["heart_rgb"][0] > 240 or 55 < row["heart_rgb"][0] < 6)
         ]
         for row in day["data"]:
             row.pop("heart_rgb", None)
