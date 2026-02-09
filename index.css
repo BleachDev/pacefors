@@ -39,14 +39,17 @@ input {
     border-radius: 4px;
 }
 
+input:focus {
+    outline: none;
+    border: 1px solid #eee;
+}
+
 input[type="number"] {
     width: 45px;
 }
 
 .header {
     background-color: var(--background-accent);
-    position: sticky;
-    top: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;

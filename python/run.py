@@ -1,16 +1,23 @@
+import re
 import subprocess
+import threading
+import sys
 import numpy as np
 import cv2
 import time
+from datetime import datetime
 import os
 import json
-from pathlib import Path
 import easyocr
 
 QUALITY = "1080p60"
 
-VOD_URL = "https://www.twitch.tv/videos/2692445092"
-START_TIMESTAMP = "00:58:51"
+VOD_URL = "https://www.twitch.tv/videos/2693251200"
+START_TIMESTAMP = "01:22:20"
+VOD_DATE = "Feb 09"
+LIVE = len(sys.argv) > 1 and sys.argv[1] == "live"
+
+OUTPUT_FILE = f"live_{time.strftime("%Y%m%d-%H%M%S")}.json" if LIVE else f"output_{VOD_DATE.replace(" ", "").lower()}.json"
 
 WIDTH = 1920
 HEIGHT = 1080
@@ -27,7 +34,7 @@ CROP_HEIGHT_E = BLACK_BAR(int(CROP_HEIGHT + HEIGHT / 23))
 
 ACV_WIDTH = int(WIDTH * 0.48)
 ACV_WIDTH_E = int(WIDTH * 0.65)
-ACV_HEIGHT = BLACK_BAR(int(HEIGHT * 0.74))
+ACV_HEIGHT = BLACK_BAR(int(HEIGHT * 0.7))
 ACV_HEIGHT_E = BLACK_BAR(int(HEIGHT * 0.84))
 
 DEATH_WIDTH = int(WIDTH * 0.25)
@@ -45,8 +52,6 @@ HEART_HEIGHT = BLACK_BAR(int(HEIGHT * 0.8622))
 
 DEBUG_DIR = "debug_frames"
 os.makedirs(DEBUG_DIR, exist_ok=True)
-
-OUTPUT_JSON = Path("output.json")
 
 reader = easyocr.Reader(
     ['en'],
@@ -68,13 +73,19 @@ def seconds_to_hms(total: int) -> str:
     s = total % 60
     return f"{h:02d}:{m:02d}:{s:02d}"
 
+def seconds_since_midnight() -> int:
+    now = datetime.now()
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return int((now - midnight).total_seconds())
 
-start_offset_seconds = hms_to_seconds(START_TIMESTAMP)
+start_offset_seconds = seconds_since_midnight() if LIVE else hms_to_seconds(START_TIMESTAMP)
 
 # --- Streamlink and FFmpeg
 streamlink = subprocess.Popen(
+    ["streamlink", "https://twitch.tv/forsen", QUALITY, "-O"] if LIVE else
     ["streamlink", VOD_URL, QUALITY, "--hls-start-offset", START_TIMESTAMP, "-O"],
-    stdout=subprocess.PIPE
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE
 )
 
 ffmpeg = subprocess.Popen(
@@ -85,6 +96,33 @@ ffmpeg = subprocess.Popen(
 )
 
 frame_idx = 0
+frame_lock = threading.Lock()
+
+if LIVE:
+    def watch_streamlink_ads(streamlink_proc: subprocess.Popen) -> None:
+        global frame_idx
+        ad_re = re.compile(r"Detected advertisement break of (\d+) seconds?", re.IGNORECASE)
+
+        if streamlink_proc.stderr is None:
+            print("Streamlink stderr is not available! cannot watch for ads.")
+            return
+
+        for raw_line in iter(streamlink_proc.stderr.readline, b""):
+            line = raw_line.decode("utf-8", errors="replace").strip()
+            print(line)
+
+            m = ad_re.search(line)
+            if m:
+                duration = int(m.group(1))
+                with open(OUTPUT_FILE.replace(".", ".ads."), "a") as ad_log:
+                    ad_log.write(f"{seconds_to_hms(start_offset_seconds + frame_idx)} {duration}\n")
+
+                with frame_lock:
+                    frame_idx += duration
+
+                print(f"> Streamlink ad break detected: +{duration}s")
+
+    threading.Thread(target=watch_streamlink_ads, args=(streamlink,), daemon=True).start()
 
 def easyocr_on_mask(img_mask: np.ndarray, allowlist) -> str:
     if img_mask.dtype != np.uint8:
@@ -94,7 +132,10 @@ def easyocr_on_mask(img_mask: np.ndarray, allowlist) -> str:
     return " ".join(results).strip()
 
 try:
-    with open(OUTPUT_JSON, "a", encoding="utf-8") as json_file:
+    with open(OUTPUT_FILE, "a", encoding="utf-8") as json_file:
+        if not LIVE:
+            json_file.write("{ \"date\": \"" + VOD_DATE + "\", \"vod\": \"" + VOD_URL + "\", \"data\": [")
+
         while True:
             raw = ffmpeg.stdout.read(WIDTH * HEIGHT * 3)
             if not raw:
@@ -140,8 +181,8 @@ try:
 
             ts = time.strftime("%Y%m%d_%H%M%S")
             filename = f"{DEBUG_DIR}/frame_{ts}_{frame_idx:06d}"
-            #cv2.imwrite(filename + "_h.png", ninjabrain_cropped)
-            #cv2.imwrite(filename + "_p.png", death_processed)
+            #cv2.imwrite(filename + "_h.png", timer_hsv)
+            #cv2.imwrite(filename + "_p.png", acv_hsv)
             #cv2.imwrite(filename + "_heart.png", frame[HEART_HEIGHT-10:HEART_HEIGHT+10, HEART_WIDTH-10:HEART_WIDTH+10])
 
             # ---------------------------------------------------------
@@ -182,3 +223,12 @@ finally:
             streamlink.terminate()
     except:
         pass
+
+    # Overwrite the trailing "," with "]}"
+    if not LIVE:
+        with open(OUTPUT_FILE, "r+b") as f:
+            f.seek(0, os.SEEK_END)
+            if f.tell() >= 2:
+                f.seek(-2, os.SEEK_END)
+                f.write(b"]}\n")
+                f.truncate()

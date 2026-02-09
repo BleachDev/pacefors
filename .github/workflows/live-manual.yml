@@ -1,0 +1,72 @@
+name: Manual Live Capture (5 min)
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  live_5min:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r python/requirements.txt
+
+      - name: Run Capturer (timeout after 5 min)
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+
+          python python/run.py live &
+          PID="$!"
+
+          echo "Started run.py (pid=${PID}). Letting it run for 300s..."
+          sleep 300
+
+          echo "Stopping run.py..."
+          kill -TERM "${PID}" 2>/dev/null || true
+
+          for i in {1..10}; do
+            if kill -0 "${PID}" 2>/dev/null; then
+              sleep 1
+            else
+              break
+            fi
+          done
+
+          if kill -0 "${PID}" 2>/dev/null; then
+            echo "Force killing run.py..."
+            kill -KILL "${PID}" 2>/dev/null || true
+          fi
+
+          echo "Produced files:"
+          ls -la live_*.json live_*.ads.* 2>/dev/null || true
+
+      - name: Upload Output as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-output
+          if-no-files-found: warn
+          path: |
+            live_*.json
+            live_*.ads.*
