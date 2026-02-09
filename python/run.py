@@ -17,7 +17,7 @@ START_TIMESTAMP = "01:22:20"
 VOD_DATE = "Feb 09"
 LIVE = len(sys.argv) > 1 and sys.argv[1] == "live"
 
-OUTPUT_FILE = f"live_{time.strftime("%Y%m%d-%H%M%S")}.json" if LIVE else f"output_{VOD_DATE.replace(" ", "").lower()}.json"
+OUTPUT_FILE = f"live_{time.strftime('%Y%m%d-%H%M%S')}.json" if LIVE else f"output_{VOD_DATE.replace(' ', '').lower()}.json"
 
 WIDTH = 1920
 HEIGHT = 1080
