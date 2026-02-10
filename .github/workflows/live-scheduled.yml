@@ -65,7 +65,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
         run: |
-          set -euo pipefail
+          set -u
 
           python python/run.py live &
           PID="$!"
@@ -112,8 +112,8 @@ jobs:
             fi
 
             # Keep streaming only while he's live AND in Minecraft.
-            python python/check_if_forsen_is_online.py --timeout 15
-            rc=$?
+            rc=0
+            python python/check_if_forsen_is_online.py --timeout 15 || rc=$?
 
             if [ "$rc" -eq 0 ]; then
               echo "Forsen is offline. Ending capture."
