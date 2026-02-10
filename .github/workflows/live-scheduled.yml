@@ -49,8 +49,7 @@ jobs:
         run: |
           set -u
 
-          rc=0
-          python python/check_if_forsen_is_online.py --wait --wait-timeout $((6 * 60 * 60)) --print json || rc=$?
+          python python/check_if_forsen_is_online.py --wait --print json || rc=$?
 
           if [ "$rc" -eq 0 ]; then
             echo "Forsen is offline. Nothing to do."
@@ -74,8 +73,11 @@ jobs:
           echo "Started run.py live (pid=${PID})."
 
           commit_live_files() {
-            # Only add the files we care about; ignore if globs don't match.
-            git add -A data/raw/live_* 2>/dev/null || true
+            echo "Running merge..."
+            python python/merge_outputs.py || true
+
+            echo "Staging data/..."
+            git add -A data 2>/dev/null || true
 
             if git diff --cached --quiet; then
               echo "No changes to commit."
@@ -114,7 +116,6 @@ jobs:
             fi
 
             # Keep streaming only while he's live AND in Minecraft.
-            rc=0
             python python/check_if_forsen_is_online.py --timeout 15 || rc=$?
 
             if [ "$rc" -eq 0 ]; then
@@ -137,11 +138,3 @@ jobs:
           echo "Final commit/push..."
           commit_live_files
           stop_capture
-
-      - name: Upload Output as Artifact (backup)
-        uses: actions/upload-artifact@v4
-        with:
-          name: live-output
-          if-no-files-found: warn
-          path: |
-            data/raw/live_*.json
