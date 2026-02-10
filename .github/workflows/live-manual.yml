@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
 
       - name: Install system deps
         run: |
@@ -61,8 +61,8 @@ jobs:
             kill -KILL "${PID}" 2>/dev/null || true
           fi
 
-          echo "Produced files:"
-          ls -la live_*.json live_*.ads.* 2>/dev/null || true
+          echo "Produced files under data/raw/:"
+          ls -la data/raw/live_*.json 2>/dev/null || true
 
       - name: Upload Output as Artifact
         uses: actions/upload-artifact@v4
@@ -70,5 +70,4 @@ jobs:
           name: live-output
           if-no-files-found: warn
           path: |
-            live_*.json
-            live_*.ads.*
+            data/raw/live_*.json
