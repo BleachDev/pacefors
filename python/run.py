@@ -54,6 +54,8 @@ HEART_HEIGHT = BLACK_BAR(int(HEIGHT * 0.8622))
 DEBUG_DIR = "debug_frames"
 os.makedirs(DEBUG_DIR, exist_ok=True)
 
+os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+
 reader = easyocr.Reader(
     ['en'],
     gpu=True,
@@ -97,7 +99,6 @@ ffmpeg = subprocess.Popen(
 )
 
 frame_idx = 0
-frame_lock = threading.Lock()
 
 if LIVE:
     def watch_streamlink_ads(streamlink_proc: subprocess.Popen) -> None:
@@ -118,8 +119,7 @@ if LIVE:
                 with open(OUTPUT_FILE.replace(".", ".ads."), "a") as ad_log:
                     ad_log.write(f"{seconds_to_hms(start_offset_seconds + frame_idx)} {duration}\n")
 
-                with frame_lock:
-                    frame_idx += duration
+                frame_idx += duration
 
                 print(f"> Streamlink ad break detected: +{duration}s")
 
