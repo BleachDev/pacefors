@@ -6,7 +6,7 @@ from datetime import date
 MONTHS = { "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6, "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12 }
 FILENAME_RE = re.compile(r"^output_([a-z]{3})(\d{2})\.json$")
 
-TIMER_REGEX = re.compile(r"^\d\d\.\d\d\.\d\d\d$")
+TIMER_REGEX = re.compile(r"^\d\d\.[012345]\d\.\d\d\d$")
 
 
 def date_from_filename(match, year: int) -> date:
@@ -17,8 +17,14 @@ def seconds(timer: str) -> int:
     minutes, secs, _ = map(int, timer.split("."))
     return minutes * 60 + secs
 
+def is_valid_heart_rgb(rgb: list[int]) -> bool:
+    r, g, b = rgb
+    if r > 240 or (55 < r < 67): return True # Normal heart (in-game/behind menu)
+    if (133 < r < 147 and 120 < g < 135) or (35 < r < 45 and 33 < g < 43): return True # Poison heart (in-game/behind menu)
+    return False
+
 def main() -> None:
-    in_folder = os.path.dirname(os.path.abspath(__file__))
+    in_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
     out_folder = os.path.join(in_folder, "..", "data")
     os.makedirs(out_folder, exist_ok=True)
 
@@ -46,18 +52,15 @@ def main() -> None:
     for day in raw_data:
         # Remove rows with a clearly invalid timer or without hearts being present (not survival mode forsenCD)
         day["data"] = [
-            row for row in day["data"]
-            if TIMER_REGEX.match(row.get("timer", ""))
-               and int(row["timer"][3]) < 6
-               and (row["heart_rgb"][0] > 240 or 55 < row["heart_rgb"][0] < 67)
+            row for row in day["data"] if TIMER_REGEX.match(row.get("timer", ""))# and is_valid_heart_rgb(row["heart_rgb"])
         ]
         for row in day["data"]:
             row.pop("heart_rgb", None)
 
     # Remove rows with invalid time skips
     for day in raw_data:
-        i = 2
-        while i < len(day["data"]) - 2:
+        i = 1
+        while i < len(day["data"]) - 1:
             s1 = seconds(day["data"][i - 1]["timer"])
             s2 = seconds(day["data"][i    ]["timer"])
             s3 = seconds(day["data"][i + 1]["timer"])
@@ -70,6 +73,9 @@ def main() -> None:
                 day["data"].pop(i)
             else:
                 i += 1
+
+        #day["data"].pop(0)
+        #day["data"].pop(-1)
 
     #with open(os.path.join(out_folder, "filtereddata.json"), "w", encoding="utf-8") as out:
     #    out.write(json.dumps(raw_data, separators=(",", ":")))
