@@ -1,0 +1,147 @@
+name: Daily Live Capture & Commit (auto)
+
+on:
+  #schedule:
+  #  # Every day at 15:30 UTC
+  #  - cron: "30 15 * * *"
+  workflow_dispatch: {}
+
+# Needed to commit/push data back to the repo
+permissions:
+  contents: write
+
+concurrency:
+  group: live-capture
+  cancel-in-progress: true
+
+jobs:
+  live_capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r python/requirements.txt
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Wait until Forsen is live + Minecraft
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+
+          python python/check_if_forsen_is_online.py --wait >/dev/null
+
+          rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "Forsen is offline. Nothing to do."
+            exit 0
+          elif [ "$rc" -eq 2 ]; then
+            echo "Forsen is live and playing Minecraft. Starting capture."
+          else
+            echo "Timed out waiting for Minecraft (rc=$rc)."
+            exit 0
+          fi
+
+      - name: Run capturer + commit live files every 5 minutes
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+
+          python python/run.py live &
+          PID="$!"
+          echo "Started run.py live (pid=${PID})."
+
+          commit_live_files() {
+            # Only add the files we care about; ignore if globs don't match.
+            git add -A data/raw/live_* 2>/dev/null || true
+
+            if git diff --cached --quiet; then
+              echo "No changes to commit."
+              return 0
+            fi
+
+            git commit -m "Update live capture ($(date -u +'%Y-%m-%d %H:%M UTC'))" || true
+            git push
+          }
+
+          stop_capture() {
+            if kill -0 "${PID}" 2>/dev/null; then
+              echo "Stopping run.py..."
+              kill -TERM "${PID}" 2>/dev/null || true
+
+              for i in {1..20}; do
+                if kill -0 "${PID}" 2>/dev/null; then
+                  sleep 1
+                else
+                  break
+                fi
+              done
+
+              if kill -0 "${PID}" 2>/dev/null; then
+                echo "Force killing run.py..."
+                kill -KILL "${PID}" 2>/dev/null || true
+              fi
+            fi
+          }
+
+          # Run up to ~6h (72 * 5min) from this point. Job timeout is a second safety net.
+          for i in {1..72}; do
+            if ! kill -0 "${PID}" 2>/dev/null; then
+              echo "run.py exited early."
+              break
+            fi
+
+            # Keep streaming only while he's live AND in Minecraft.
+            python python/check_if_forsen_is_online.py --timeout 15 >/dev/null
+            rc=$?
+
+            if [ "$rc" -eq 0 ]; then
+              echo "Forsen is offline. Ending capture."
+              break
+            elif [ "$rc" -eq 1 ]; then
+              echo "Forsen is live but not Minecraft. Ending capture."
+              break
+            else
+              echo "Still live + Minecraft."
+            fi
+
+            echo "Sleeping 5 minutes..."
+            sleep 300
+
+            echo "Committing any updated live_* files..."
+            commit_live_files
+          done
+
+          echo "Final commit/push..."
+          commit_live_files
+          stop_capture
+
+      - name: Upload Output as Artifact (backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-output
+          if-no-files-found: warn
+          path: |
+            data/raw/live_*.json
