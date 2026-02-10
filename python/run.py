@@ -17,7 +17,8 @@ START_TIMESTAMP = "01:22:20"
 VOD_DATE = "Feb 09"
 LIVE = len(sys.argv) > 1 and sys.argv[1] == "live"
 
-OUTPUT_FILE = f"../data/raw/live_{time.strftime('%Y%m%d-%H%M%S')}.json" if LIVE else f"../data/raw/output_{VOD_DATE.replace(' ', '').lower()}.json"
+cur_dir = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_FILE = os.path.join(cur_dir, "..", "data", "raw", f"live_{time.strftime('%Y%m%d-%H%M%S')}.json") if LIVE else os.path.join(cur_dir, "..", "data", "raw", f"output_{VOD_DATE.replace(' ', '').lower()}.json")
 
 WIDTH = 1920
 HEIGHT = 1080

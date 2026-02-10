@@ -24,8 +24,9 @@ def is_valid_heart_rgb(rgb: list[int]) -> bool:
     return False
 
 def main() -> None:
-    in_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
-    out_folder = os.path.join(in_folder, "..", "data")
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    in_folder = os.path.join(cur_dir, "..", "data", "raw")
+    out_folder = os.path.join(cur_dir, "..", "data")
     os.makedirs(out_folder, exist_ok=True)
 
     year = date.today().year
