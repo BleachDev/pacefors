@@ -116,7 +116,7 @@ if LIVE:
             m = ad_re.search(line)
             if m:
                 duration = int(m.group(1))
-                with open(OUTPUT_FILE.replace(".", ".ads."), "a") as ad_log:
+                with open(OUTPUT_FILE.replace(".json", ".ads.json"), "a") as ad_log:
                     ad_log.write(f"{seconds_to_hms(start_offset_seconds + frame_idx)} {duration}\n")
 
                 frame_idx += duration

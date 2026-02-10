@@ -54,10 +54,12 @@ jobs:
 
           if [ "$rc" -eq 0 ]; then
             echo "Forsen is offline. Nothing to do."
+            exit 0
           elif [ "$rc" -eq 2 ]; then
             echo "Forsen is live and playing Minecraft. Starting capture."
           else
             echo "Timed out waiting for Minecraft (rc=$rc)."
+            exit 0
           fi
 
       - name: Run capturer + commit live files every 5 minutes
