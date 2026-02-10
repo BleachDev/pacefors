@@ -49,7 +49,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          python python/check_if_forsen_is_online.py --wait >/dev/null
+          python python/check_if_forsen_is_online.py --wait True >/dev/null
 
           rc=$?
           if [ "$rc" -eq 0 ]; then
