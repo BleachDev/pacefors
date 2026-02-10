@@ -1,4 +1,4 @@
-name: Manual Live Capture (5 min)
+name: Manual Live Capture (3 min)
 
 on:
   workflow_dispatch: {}
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  live_5min:
+  live_180s:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,6 +28,8 @@ jobs:
       - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
+          # Only install CPU version of PyTorch to avoid 8GB of CUDA dependency downloads
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install -r python/requirements.txt
 
       - name: Run Capturer (timeout after 5 min)
@@ -40,8 +42,8 @@ jobs:
           python python/run.py live &
           PID="$!"
 
-          echo "Started run.py (pid=${PID}). Letting it run for 300s..."
-          sleep 300
+          echo "Started run.py (pid=${PID}). Letting it run for 180s..."
+          sleep 180
 
           echo "Stopping run.py..."
           kill -TERM "${PID}" 2>/dev/null || true
