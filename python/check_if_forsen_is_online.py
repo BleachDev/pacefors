@@ -49,8 +49,8 @@ def get_stream_info(timeout_s: int = 15) -> StreamInfo:
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Check if forsen is online and streaming Minecraft.")
     parser.add_argument("--timeout", type=int, default=15, help="Timeout in seconds for streamlink (default: 15)")
-    parser.add_argument("--print",  choices=["none", "json"], default="none", help="Output format (default: none)")
-    parser.add_argument("--wait", type=bool, default=False, help="Wait for the category to change to Minecraft if hes online in another category (default: False)")
+    parser.add_argument("--print", choices=["none", "json"], default="none", help="Output format (default: none)")
+    parser.add_argument("--wait", action="store_true", help="If online but not Minecraft, poll every 30s until Minecraft, offline, or timeout.")
     parser.add_argument("--wait-timeout", type=float, default=6 * 60 * 60, help="Max wait time in seconds (default: 6h)")
 
     args = parser.parse_args(argv)
@@ -70,7 +70,7 @@ def main(argv: list[str]) -> int:
         elif info.category != "Minecraft": code = 1
         else: code = 2
 
-        if code != 1 or not args.wait:
+        if not args.wait or code != 1:
             return code
 
         time.sleep(30)
