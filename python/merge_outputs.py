@@ -165,5 +165,18 @@ def main() -> None:
     with open(os.path.join(out_folder, "live_stripped_runs.json"), "w", encoding="utf-8") as out:
         out.write(json.dumps(live_stripped_runs, separators=(",", ":")))
 
+    # Write a JSON of all data/ files and filesizes for use in the frontend for raw data downloads
+    index = []
+    for root, _, files in os.walk(out_folder):
+        for name in files:
+            path = os.path.join(root, name)
+            index.append({
+                "path": os.path.relpath(path, out_folder),
+                "size": os.path.getsize(path),
+            })
+
+    with open(os.path.join(out_folder, "index.json"), "w", encoding="utf-8") as out:
+        out.write(json.dumps(index, separators=(",", ":")))
+
 if __name__ == "__main__":
     main()

@@ -1,0 +1,82 @@
+name: Manual VOD Capture & Commit
+
+on:
+  workflow_dispatch:
+    inputs:
+      vod_url:
+        description: "Twitch VOD URL (e.g. https://www.twitch.tv/videos/123)"
+        required: true
+        type: string
+      start_timestamp:
+        description: "Start timestamp (HH:MM:SS)"
+        required: true
+        default: "00:00:00"
+        type: string
+      vod_date:
+        description: "Label used for output filename (e.g. 'Feb 11')"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vod-capture
+  cancel-in-progress: true
+
+jobs:
+  vod_capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: "pip"
+          cache-dependency-path: "python/requirements.txt"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r python/requirements.txt
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run VOD capturer
+        env:
+          PYTHONUNBUFFERED: "1"
+          VOD_URL: ${{ inputs.vod_url }}
+          START_TIMESTAMP: ${{ inputs.start_timestamp }}
+          VOD_DATE: ${{ inputs.vod_date }}
+        run: |
+          python python/run.py
+
+      - name: Merge outputs
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python python/merge_outputs.py
+
+      - name: Commit and push updated data
+        run: |
+          git add -A data 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update VOD capture: ${{ inputs.vod_date }} ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git push
