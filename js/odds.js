@@ -83,7 +83,7 @@ export function buildCalculator(runs, s2ChancePerRun, blindChancePerRun, strongh
     recalc();
 }
 
-function getSplits(runs, dayLimit = 12) {
+function getSplits(runs, dayLimit = 20) {
     const s2Entries = {};
     const blinds = {};
     const strongholds = {};

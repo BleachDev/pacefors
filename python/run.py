@@ -12,9 +12,9 @@ import easyocr
 
 QUALITY = "1080p60"
 
-VOD_URL = "https://www.twitch.tv/videos/2693251200"
-START_TIMESTAMP = "01:22:20"
-VOD_DATE = "Feb 09"
+VOD_URL = "https://www.twitch.tv/videos/2694088882"
+START_TIMESTAMP = "01:00:39"
+VOD_DATE = "Feb 10"
 LIVE = len(sys.argv) > 1 and sys.argv[1] == "live"
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
