@@ -108,10 +108,12 @@ function rebuildRuns(runs) {
             run.death.includes("Blaze") ? `<img src="/static/blaze.webp" height="14" title="${run.death}" alt="${run.death}">` :
                 `<span style="color: #ee8888">${run.death}</span>`;
 
+        const date = run.vod ? run.date : "LIVE";
+        const link = run.vod ? `href="${runs[r].vod}?t=${run.timestamps[0].replace(":", "h").replace(":", "m")}s"` : "";
         runStr += `
             <div>
                 <span style="display: inline-block; width: ${RUNS_MARGIN}px;">
-                    #${r} - <a target="_blank" href="${runs[r].vod}?t=${run.timestamps[0].replace(":", "h").replace(":", "m")}s">${run.date} ${run.timestamps[0]}</a>
+                    #${r} - <a target="_blank" ${link}">${date} ${run.timestamps[0]}</a>
                 </span>
                 <div class="run-bar-container" data-run="${r}">
                 ${segments.map((s, i) => `<div

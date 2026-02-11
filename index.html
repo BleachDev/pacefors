@@ -15,17 +15,18 @@
 </head>
 <body>
     <div class="header">
-        <div style="flex: 1; text-align: left">
-            <h1 class="header-text">Forsen Speedrun Tracker</h1>
-            <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
-            <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
-            <div style="display: inline-block">
-                <span style="color: #80ee80; font-size: 10px">v1.1<br>Data fixed, strongholds added!</span>
-            </div>
+        <h1 class="header-text">Forsen Speedrun Tracker</h1>
+        <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
+        <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
+        <div style="display: inline-block">
+            <span style="color: #80ee80; font-size: 10px">v1.1<br>Data fixed, strongholds added!</span>
         </div>
-        <div id="header-runs"></div>
-        <a href="https://github.com/BleachDev/pacefors" style="margin: 0 20px 0 10px"><img src="static/github.svg" height="28" alt="Source Code"/></a>
+        <div style="flex: 1"></div>
+        <a href="https://github.com/BleachDev/pacefors" style="margin-right: 20px;">
+            <img src="static/github.svg" height="28" alt="Source Code"/>
+        </a>
     </div>
+    <div id="header-runs"></div>
 
     <div class="odds-container">
         <h2>Split Odds</h2>
@@ -88,11 +89,24 @@
     </div>
 
     <script type="module">
-        import runs from "./data/stripped_runs.json" with { type: "json" };
+        import vodRuns from "./data/stripped_runs.json" with { type: "json" };
         import { buildRuns } from "./js/runlist.js";
         import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
         import {buildOdds} from "./js/odds.js";
         import {C_BASTION, C_FORT, C_NETHER, C_BLIND, C_STRONGHOLD} from "./js/utils.js";
+
+        async function tryImportLiveRuns() {
+            try {
+                const mod = await import("./data/live_stripped_runs.json", { with: { type: "json" } });
+                return mod.default ?? [];
+            } catch (e) {
+                console.log("Live data not found", e);
+                return [];
+            }
+        }
+
+        const liveRuns = await tryImportLiveRuns();
+        const runs = vodRuns.concat(liveRuns);
 
         buildRuns(runs);
         buildEntryChart(runs);
@@ -101,14 +115,14 @@
 
         // Init Header stats
         document.getElementById("header-runs").innerHTML = `
-            <span>Runs: <span style="color: #55ee55">${runs.length}</span></span>
-            <span>Nethers: <span style="color: ${C_NETHER}">${runs.filter(r => r.nether).length}</span></span>
-            <span>Bastions: <span style="color: ${C_BASTION}">${runs.filter(r => r.bastion).length}</span></span>
-            <span>Forts: <span style="color: ${C_FORT}">${runs.filter(r => r.fort).length}</span></span>
-            <span>Blinds: <span style="color: ${C_BLIND}">${runs.filter(r => r.blind).length}</span></span>
-            <span>Strongholds: <span style="color: ${C_STRONGHOLD}">${runs.filter(r => r.stronghold).length}</span></span>
-            <span>Ends: <span style="color: #eeaa55">0</span></span>
-            <span>Finish: <span style="color: #aaaaff">0</span></span>
+            <span>Runs <span style="color: #55ee55">${runs.length}</span></span>
+            <span>Nethers <span style="color: ${C_NETHER}">${runs.filter(r => r.nether).length}</span></span>
+            <span>Bastions <span style="color: ${C_BASTION}">${runs.filter(r => r.bastion).length}</span></span>
+            <span>Forts <span style="color: ${C_FORT}">${runs.filter(r => r.fort).length}</span></span>
+            <span>Blinds <span style="color: ${C_BLIND}">${runs.filter(r => r.blind).length}</span></span>
+            <span>Strongholds <span style="color: ${C_STRONGHOLD}">${runs.filter(r => r.stronghold).length}</span></span>
+            <span>Ends <span style="color: #eeaa55">0</span></span>
+            <span>Finishes <span style="color: #aaaaff">0</span></span>
         `;
     </script>
 </body>
