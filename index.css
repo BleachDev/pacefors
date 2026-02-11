@@ -175,3 +175,23 @@ input[type="number"] {
     border-radius: 6px;
     font-size: 12px;
 }
+
+.live-run {
+    background-color: #ff000020;
+    padding: 0 3px;
+    margin: 0 -3px;
+    border-radius: 4px;
+    animation: live-run-pulse 1s ease-in-out infinite;
+}
+
+@keyframes live-run-pulse {
+    0% {
+        background-color: #ff000020;
+    }
+    50% {
+        background-color: #ff000040;
+    }
+    100% {
+        background-color: #ff000020;
+    }
+}

@@ -16,6 +16,19 @@ export function buildRuns(runs) {
     // Runs tooltip
     const tooltip = document.getElementById("runs-tooltip");
     document.getElementById("runs").addEventListener("mousemove", (e) => {
+        const deathImage = e.target?.closest?.("img");
+        if (deathImage) {
+            tooltip.innerHTML = `
+                <img src="${deathImage.getAttribute("src")}" height="32" alt="">
+                <br>
+                <span style="color: #ee8888">${deathImage.getAttribute("title")}</span>
+            `;
+            tooltip.style.left = `${e.clientX + 8}px`;
+            tooltip.style.top = `${e.clientY - 60}px`;
+            tooltip.style.display = "block";
+            return;
+        }
+
         const bar = e.target?.closest?.(".run-bar-container");
         if (!bar) {
             tooltip.style.display = "none";
@@ -44,7 +57,6 @@ export function buildRuns(runs) {
         const secs = (e.clientX - rowRect.left) * (60 / RUNS_PER_MINUTE);
 
         // Find closest entry to clicked time
-        console.log(run, ~~(secs / 5), formatMMSS(secs));
         const timestamp = run.timestamps[~~(secs / 5)].replace(":", "h").replace(":", "m");
         window.open(`${run.vod}?t=${timestamp}s`, "_blank");
     });
@@ -98,22 +110,29 @@ function rebuildRuns(runs) {
         ].filter(s => s.w > 0);
 
         const deathIcon = !run.death ? "" :
-            run.death.includes("lava") ? `<img src="/static/forsenHoppedin.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("burn") ? `<img src="/static/forsenFire.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("fell") || run.death.includes("ground") ? `<img src="/static/forsenGravity.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("Pig") ? `<img src="/static/piglin.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("Hog") ? `<img src="/static/hoglin.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("ither") ? `<img src="/static/wither.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("Skel") ? `<img src="/static/skeleton.webp" height="14" title="${run.death}" alt="${run.death}">` :
-            run.death.includes("Blaze") ? `<img src="/static/blaze.webp" height="14" title="${run.death}" alt="${run.death}">` :
+            run.death.includes("lava") ? `<img src="/static/forsenHoppedin.webp" height="14" title="${run.death}" alt="">` :
+            run.death.includes("burn") ? `<img src="/static/forsenFire.webp" height="14" title="${run.death}" alt="">` :
+            run.death.includes("fell") || run.death.includes("ground") ? `<img src="/static/forsenGravity.webp" height="14" title="${run.death}" alt="">` :
+            run.death.includes("Pig") ? `<img src="/static/piglin.webp" height="14" title="${run.death}" alt="">` :
+            run.death.includes("Hog") ? `<img src="/static/hoglin.webp" height="14" title="${run.death}" alt="">` :
+            run.death.includes("ither") ? `<img src="/static/wither.webp" height="14" title="${run.death}" alt="">` :
+            run.death.includes("Skel") ? `<img src="/static/skeleton.webp" height="14" title="${run.death}" alt="">` :
+            run.death.includes("Blaze") ? `<img src="/static/blaze.webp" height="14" title="${run.death}" alt="">` :
                 `<span style="color: #ee8888">${run.death}</span>`;
 
         const date = run.vod ? run.date : "LIVE";
         const link = run.vod ? `href="${runs[r].vod}?t=${run.timestamps[0].replace(":", "h").replace(":", "m")}s"` : "";
+        const liveStyle = !run.vod && r === runs.length - 1 && utcDiff(run.timestamps[run.timestamps.length - 1]) < 60 * 15
+            ? `class="live-run"` : "";
+
+        if (r === runs.length - 1) {
+            console.log(utcDiff(run.timestamps[run.timestamps.length - 1]));
+        }
+
         runStr += `
             <div>
                 <span style="display: inline-block; width: ${RUNS_MARGIN}px;">
-                    #${r} - <a target="_blank" ${link}">${date} ${run.timestamps[0]}</a>
+                    #${r} - <a target="_blank" ${liveStyle} ${link}">${date} ${run.timestamps[0]}</a>
                 </span>
                 <div class="run-bar-container" data-run="${r}">
                 ${segments.map((s, i) => `<div
@@ -127,4 +146,10 @@ function rebuildRuns(runs) {
     }
 
     runElement.innerHTML += runStr;
+}
+
+function utcDiff(timeStr) {
+    const [h, m, s] = timeStr.split(":").map(Number);
+    const now = new Date();
+    return (now.getUTCHours() - h) * 3600 + (now.getUTCMinutes() - m) * 60 + (s - now.getUTCSeconds() - s);
 }
