@@ -21,7 +21,10 @@
         <div style="display: inline-block">
             <span style="color: #80ee80; font-size: 10px">v1.2<br>Record predictions, Live data support.</span>
         </div>
+
         <div style="flex: 1"></div>
+
+        <span id="download-text" onclick="document.getElementById('download-background').style.display = 'block'">Download<br>Dataset</span>
         <a href="https://github.com/BleachDev/pacefors" style="margin-right: 20px;">
             <img src="static/github.svg" height="28" alt="Source Code"/>
         </a>
@@ -59,18 +62,27 @@
     <div class="odds-container">
         <h2>Calculator</h2>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <label>Chance of
-                <select id="calc-type">
-                    <option>Struct 1</option>
-                    <option>Struct 2</option>
-                    <option>Blind</option>
-                    <option>Stronghold</option>
-                    <option>End</option>
-                </select><br>
-                before <input type="date" id="calc-date"/><br>
-                in under <input type="number" id="calc-minutes" min="0" value="30"/>:<input type="number" id="calc-seconds" min="0" max="59" value="0"/>
-            </label>
-            <span class="code-block" id="calc-result"></span>
+            <div style="display: flex; flex-direction: row; gap: 10px;">
+                <div style="display: flex; flex-direction: column">
+                    <label>Chance of</label>
+                    <select id="calc-type">
+                        <option>Struct 1</option>
+                        <option>Struct 2</option>
+                        <option>Blind</option>
+                        <option>Stronghold</option>
+                        <option>End</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column">
+                    <label>before </label>
+                    <input type="date" id="calc-date"/>
+                </div>
+                <div style="display: flex; flex-direction: column">
+                    <label>in under</label>
+                    <div><input type="number" id="calc-minutes" min="0" value="30"/>:<input type="number" id="calc-seconds" min="0" max="59" value="0"/></div>
+                </div>
+            </div>
+            <span class="code-block" id="calc-result">-</span>
         </div>
     </div>
 
@@ -99,23 +111,30 @@
         <div id="runs-tooltip"></div>
     </div>
 
+    <div id="download-background">
+        <div id="download-container">
+            <h1>Datasets</h1>
+        </div>
+    </div>
+
     <script type="module">
         import vodRuns from "./data/stripped_runs.json" with { type: "json" };
         import { buildRuns } from "./js/runlist.js";
         import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
         import {buildOdds, buildCalculator, buildPredictions} from "./js/odds.js";
         import {C_BASTION, C_FORT, C_NETHER, C_BLIND, C_STRONGHOLD, C_END, C_FINISH} from "./js/utils.js";
-        async function tryImportLiveRuns() {
+
+        async function tryImport(url, errorMessage) {
             try {
-                const mod = await import("./data/live_stripped_runs.json", { with: { type: "json" } });
+                const mod = await import(url, { with: { type: "json" } });
                 return mod.default ?? [];
             } catch (e) {
-                console.log("Live data not found", e);
+                console.log(errorMessage, e);
                 return [];
             }
         }
 
-        const liveRuns = await tryImportLiveRuns();
+        const liveRuns = await tryImport("./data/live_stripped_runs.json", "Live data not found");
         const runs = vodRuns.concat(liveRuns);
 
         buildRuns(runs);
@@ -136,6 +155,31 @@
             <span>Ends <span style="color: ${C_END}">0</span></span>
             <span>Finishes <span style="color: ${C_FINISH}">0</span></span>
         `;
+
+        // Init download links
+        tryImport("./data/index.json", "Dataset Index not found").then(index => {
+            let str = "<span>Processed Combined Data</span>";
+            let lastItem;
+            index.forEach(item => {
+                if (item.path.match(/[/\\]/) && !lastItem?.path?.match(/[/\\]/)) {
+                    str += `<hr><span>Raw Daily Data</span>`;
+                }
+
+                str += `
+                <div class="" style="text-align: left">
+                    <a href="./data/${item.path}" class="dataset-link" download="" style="display: inline-block; width: 200px">${item.path}</a>
+                    <span style="color: #aaa; font-size: 12px">${(item.size / 1000).toFixed(2)} KB</span>
+                </div>`;
+                lastItem = item;
+            });
+
+            document.getElementById("download-container").innerHTML += str;
+        });
+        document.getElementById("download-background").onclick = e => {
+            if (e.target.id === "download-background") {
+                document.getElementById("download-background").style.display = "none";
+            }
+        }
     </script>
 </body>
 </html>

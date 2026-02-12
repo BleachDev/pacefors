@@ -58,7 +58,7 @@ export function buildCalculator(runs) {
 
         const rawDate = dateEl.value;
         if (!rawDate) {
-            outEl.textContent = "";
+            outEl.textContent = "-";
             return;
         }
 
@@ -66,7 +66,7 @@ export function buildCalculator(runs) {
         const daysFromNow = (inputDate - new Date()) / (1000 * 60 * 60 * 24);
 
         if (!Number.isFinite(daysFromNow) || daysFromNow <= 0) {
-            outEl.textContent = `> 0% <`;
+            outEl.textContent = `0%`;
             return;
         }
 
