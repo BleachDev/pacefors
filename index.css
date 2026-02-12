@@ -9,6 +9,8 @@
     --fort: #7a0000;
     --blind: #8855ee;
     --stronghold: #558877;
+    --end: #eeaa55;
+    --finish: #aaaaff;
 
     --grid-x-offset: 220px;
     --grid-x-per-minute: 45px;
@@ -48,6 +50,17 @@ input[type="number"] {
     width: 45px;
 }
 
+th, td, .th-like {
+    margin: 1px;
+    padding: 0 6px;
+    background-color: var(--background);
+}
+
+hr {
+    border: 1px solid #444;
+    margin: 10px 0;
+}
+
 .header {
     display: flex;
     flex-direction: row;
@@ -85,20 +98,18 @@ input[type="number"] {
     margin-top: 15px;
 }
 
-#s2-odds, #s2-day-odds {
-    color: var(--fort)
+#calc-result {
+    width: fit-content;
+    margin: -3px auto;
+    padding: 2px 10px;
+    color: var(--finish);
 }
 
-#blind-odds, #blind-day-odds {
-    color: var(--blind);
-}
-
-#stronghold-odds, #stronghold-day-odds {
-    color: var(--stronghold);
-}
-
-#calc-odds {
-    color: #eeee40;
+.code-block {
+    background-color: #2a2a2a;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
 }
 
 #runs {

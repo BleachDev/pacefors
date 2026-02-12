@@ -19,7 +19,7 @@
         <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
         <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
         <div style="display: inline-block">
-            <span style="color: #80ee80; font-size: 10px">v1.1<br>Data fixed, strongholds added!</span>
+            <span style="color: #80ee80; font-size: 10px">v1.2<br>Record predictions, Live data support.</span>
         </div>
         <div style="flex: 1"></div>
         <a href="https://github.com/BleachDev/pacefors" style="margin-right: 20px;">
@@ -28,38 +28,49 @@
     </div>
     <div id="header-runs"></div>
 
+    <div class="odds-container" id="predictions-container">
+        <h2>Predictions</h2>
+    </div>
+
+    <br>
+
     <div class="odds-container">
         <h2>Split Odds</h2>
         <div style="display: flex; gap: 20px;">
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <span>S2 Enters<br><span id="s2-odds"></span></span>
-                <span>Chance of<br>S2 Enter/Day<br><span id="s2-day-odds"></span></span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <span>Blinds<br><span id="blind-odds"></span></span>
-                <span>Chance of<br>Blind/Day<br><span id="blind-day-odds"></span></span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <span>Strongholds<br><span id="stronghold-odds"></span></span>
-                <span>Chance of<br>Stronghold/Day<br><span id="stronghold-day-odds"></span></span>
-            </div>
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Struct 1</th>
+                    <th>Struct 2</th>
+                    <th>Blind</th>
+                    <th>Stronghold</th>
+                    <th>End</th>
+                </tr>
+                <tr id="odds-chance">
+                    <th>Chance of<br>Enter</th>
+                </tr>
+                <tr id="odds-day-chance">
+                    <th>Chance of<br>Enter/Day</th>
+                </tr>
+            </table>
         </div>
     </div>
 
     <div class="odds-container">
         <h2>Calculator</h2>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <span>Chance of
+            <label>Chance of
                 <select id="calc-type">
-                    <option value="s2">Struct 2</option>
-                    <option value="blind">Blind</option>
-                    <option value="stronghold">Stronghold</option>
-                    <option value="end">End</option>
+                    <option>Struct 1</option>
+                    <option>Struct 2</option>
+                    <option>Blind</option>
+                    <option>Stronghold</option>
+                    <option>End</option>
                 </select><br>
                 before <input type="date" id="calc-date"/><br>
                 in under <input type="number" id="calc-minutes" min="0" value="30"/>:<input type="number" id="calc-seconds" min="0" max="59" value="0"/>
-            </span>
-            <span id="calc-odds"></span>
+            </label>
+            <span class="code-block" id="calc-result"></span>
         </div>
     </div>
 
@@ -92,9 +103,8 @@
         import vodRuns from "./data/stripped_runs.json" with { type: "json" };
         import { buildRuns } from "./js/runlist.js";
         import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
-        import {buildOdds} from "./js/odds.js";
-        import {C_BASTION, C_FORT, C_NETHER, C_BLIND, C_STRONGHOLD} from "./js/utils.js";
-
+        import {buildOdds, buildCalculator, buildPredictions} from "./js/odds.js";
+        import {C_BASTION, C_FORT, C_NETHER, C_BLIND, C_STRONGHOLD, C_END, C_FINISH} from "./js/utils.js";
         async function tryImportLiveRuns() {
             try {
                 const mod = await import("./data/live_stripped_runs.json", { with: { type: "json" } });
@@ -112,6 +122,8 @@
         buildEntryChart(runs);
         buildAvgEntryChart(runs);
         buildOdds(runs);
+        buildCalculator(runs);
+        buildPredictions(runs);
 
         // Init Header stats
         document.getElementById("header-runs").innerHTML = `
@@ -121,8 +133,8 @@
             <span>Forts <span style="color: ${C_FORT}">${runs.filter(r => r.fort).length}</span></span>
             <span>Blinds <span style="color: ${C_BLIND}">${runs.filter(r => r.blind).length}</span></span>
             <span>Strongholds <span style="color: ${C_STRONGHOLD}">${runs.filter(r => r.stronghold).length}</span></span>
-            <span>Ends <span style="color: #eeaa55">0</span></span>
-            <span>Finishes <span style="color: #aaaaff">0</span></span>
+            <span>Ends <span style="color: ${C_END}">0</span></span>
+            <span>Finishes <span style="color: ${C_FINISH}">0</span></span>
         `;
     </script>
 </body>
