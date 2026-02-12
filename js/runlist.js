@@ -120,14 +120,12 @@ function rebuildRuns(runs) {
             run.death.includes("Blaze") ? `<img src="/static/blaze.webp" height="14" title="${run.death}" alt="">` :
                 `<span style="color: #ee8888">${run.death}</span>`;
 
+        const timeDiff = utcDiff(run.timestamps[run.timestamps.length - 1]);
+
         const date = run.vod ? run.date : "LIVE";
         const link = run.vod ? `href="${runs[r].vod}?t=${run.timestamps[0].replace(":", "h").replace(":", "m")}s"` : "";
-        const liveStyle = !run.vod && r === runs.length - 1 && utcDiff(run.timestamps[run.timestamps.length - 1]) < 60 * 15
+        const liveStyle = !run.vod && r === runs.length - 1 && timeDiff > 0 && timeDiff < 60 * 15
             ? `class="live-run"` : "";
-
-        if (r === runs.length - 1) {
-            console.log(utcDiff(run.timestamps[run.timestamps.length - 1]));
-        }
 
         runStr += `
             <div>
