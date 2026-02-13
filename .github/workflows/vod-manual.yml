@@ -63,10 +63,11 @@ jobs:
         run: |
           python python/run.py
 
-      - name: Merge outputs
+      - name: Clean up Live files and Merge
         env:
           PYTHONUNBUFFERED: "1"
         run: |
+          rm -f data/raw/live_*.json 2>/dev/null || true
           python python/merge_outputs.py
 
       - name: Commit and push updated data
@@ -79,4 +80,6 @@ jobs:
           fi
 
           git commit -m "Update VOD capture: ${{ inputs.vod_date }} ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+
+          git pull --rebase --autostash || true
           git push
