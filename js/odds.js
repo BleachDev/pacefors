@@ -108,35 +108,35 @@ export function buildPredictions(runs) {
     const RECORD_TIME = 14 * 60 + 27;
 
     // Segment assumptions (in seconds)
-    const BLIND_TO_STRONGHOLD_TIME = 210; // 3:30
+    const BLIND_TO_STRONGHOLD_TIME = 120; // 3:30
     const BLIND_TO_STRONGHOLD_P = 0.25;
-    const STRONGHOLD_TO_END_TIME = 90; // 1:30
+    const STRONGHOLD_TO_END_TIME = 60; // 1:30
     const STRONGHOLD_TO_END_P = 0.60;
-    const END_TO_FINISH_TIME = 135; // 2:15
+    const END_TO_FINISH_TIME = 120; // 2:15
     const END_TO_FINISH_P = 0.2;
 
     // Calculate required blind time to beat Record
     const requiredBlindTime = RECORD_TIME - (BLIND_TO_STRONGHOLD_TIME + STRONGHOLD_TO_END_TIME + END_TO_FINISH_TIME);
 
     // Probability of beating Record given a single run that reaches blind
-    const pBlindFastEnough = 1 - logNormalCdfSeconds(requiredBlindTime, blindFit.mu, blindFit.sigma);
+    const pBlindFastEnough = logNormalCdfSeconds(requiredBlindTime, blindFit.mu, blindFit.sigma);
 
-    const pWRperBlind = pBlindFastEnough * BLIND_TO_STRONGHOLD_P * STRONGHOLD_TO_END_P * END_TO_FINISH_P;
-    const pWRperRun = chanceBlindPerRun * pWRperBlind;
+    const pRecordPerBlind = pBlindFastEnough * BLIND_TO_STRONGHOLD_P * STRONGHOLD_TO_END_P * END_TO_FINISH_P;
+    const pRecordPerRun = chanceBlindPerRun * pRecordPerBlind;
 
     // Probability of success on a single day
-    const pSuccessPerDay = 1 - Math.pow(1 - pWRperRun, avgDayRuns);
+    const pSuccessPerDay = 1 - Math.pow(1 - pRecordPerRun, avgDayRuns);
 
     // Calculate cumulative probability over each day, and find when it crosses 10%, 50%, and 90%
     let daysCumulative10 = 0;
     let daysCumulative50 = 0;
     let daysCumulative90 = 0;
     let cumulative = 0;
-    while (cumulative < 0.9 && daysCumulative90 < 10000) {
+    while (cumulative < 0.9 && daysCumulative90 < 100000000) {
         if (cumulative < 0.1) daysCumulative10++;
         if (cumulative < 0.5) daysCumulative50++;
         daysCumulative90++;
-        cumulative = 1 - Math.pow(1 - pWRperRun, avgDayRuns * daysCumulative90);
+        cumulative = 1 - Math.pow(1 - pRecordPerRun, avgDayRuns * daysCumulative90);
     }
 
 
@@ -189,7 +189,7 @@ export function buildPredictions(runs) {
                     <li>End → Finish: ${formatMMSS(END_TO_FINISH_TIME)} (${~~(END_TO_FINISH_P*100)}% success rate)</li>
                 </ul>
                 <p><strong>Required blind time:</strong> < ${formatMMSS(requiredBlindTime)}</p>
-                <p><strong>Chance per run:</strong> ${(pWRperRun * 100).toFixed(4)}%</p>
+                <p><strong>Chance per run:</strong> ${(pRecordPerRun * 100).toFixed(4)}%</p>
                 <p><strong>Chance per day:</strong> ${(pSuccessPerDay * 100).toFixed(2)}%</p>
                 <hr>
                 <div class="code-block">

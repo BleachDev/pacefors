@@ -37,9 +37,9 @@ def filter_raw_data(raw_data: list[dict]) -> None:
 
     # Remove rows with invalid time skips
     for day in raw_data:
-        i = 1
+        i = 0
         while i < len(day["data"]) - 1:
-            s1 = seconds(day["data"][i - 1]["timer"])
+            s1 = seconds(day["data"][i - 1]["timer"]) if i > 0 else 0
             s2 = seconds(day["data"][i]["timer"])
             s3 = seconds(day["data"][i + 1]["timer"])
 
@@ -53,7 +53,7 @@ def filter_raw_data(raw_data: list[dict]) -> None:
                 i += 1
 
         #day["data"].pop(0)
-        #day["data"].pop(-1)
+        day["data"].pop(-1)
 
 def build_runs(raw_data: list[dict]) -> list[dict]:
     # Build Runs containing all the data for each run.
