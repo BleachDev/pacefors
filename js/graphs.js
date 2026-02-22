@@ -237,7 +237,7 @@ export function buildAvgEntryChart(runs) {
 
 function toUnixTimestamp(date) {
     // surely mr fors will take less than 1 year to get the record
-    return new Date(`${date} ${new Date().getFullYear()} 00:00:00 GMT+0`).getTime();
+    return new Date(`${date} ${new Date().getFullYear()}`).getTime();
 }
 
 function timestackData(data, key)
