@@ -125,11 +125,11 @@ export function buildAvgEntryChart(runs) {
     for (let r = 0; r < runs.length; r++) {
         const run = runs[r];
 
-        if (run.nether) pushOrCreate(netherDays, run.date, run.nether);
-        if (run.bastion || run.fort) pushOrCreate(struct1Days, run.date, !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion));
-        if (run.bastion && run.fort) pushOrCreate(struct2Days, run.date, Math.max(run.fort, run.bastion));
-        if (run.blind)  pushOrCreate(blindDays, run.date, run.blind);
-        if (run.stronghold) pushOrCreate(strongholdDays, run.date, run.stronghold);
+        if (run.nether) pushOrCreate(netherDays, toUnixTimestamp(run.date), run.nether);
+        if (run.bastion || run.fort) pushOrCreate(struct1Days, toUnixTimestamp(run.date), !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion));
+        if (run.bastion && run.fort) pushOrCreate(struct2Days, toUnixTimestamp(run.date), Math.max(run.fort, run.bastion));
+        if (run.blind)  pushOrCreate(blindDays, toUnixTimestamp(run.date), run.blind);
+        if (run.stronghold) pushOrCreate(strongholdDays, toUnixTimestamp(run.date), run.stronghold);
     }
 
     // Average the times for each day
@@ -149,7 +149,7 @@ export function buildAvgEntryChart(runs) {
             datasets: [
                 {
                     label: "Nether Entry",
-                    data: dates.map(d => netherDays[d]),
+                    data: dates.map(d => timestackData(netherDays, d)),
                     showLine: true,
                     fill: "start",
                     pointBackgroundColor: C_NETHER,
@@ -158,7 +158,7 @@ export function buildAvgEntryChart(runs) {
                 },
                 {
                     label: "Struct 1 Entry",
-                    data: dates.map(d => struct1Days[d]),
+                    data: dates.map(d => timestackData(struct1Days, d)),
                     showLine: true,
                     fill: "start",
                     pointBackgroundColor: C_BASTION,
@@ -167,7 +167,7 @@ export function buildAvgEntryChart(runs) {
                 },
                 {
                     label: "Struct 2 Entry",
-                    data: dates.map(d => struct2Days[d]),
+                    data: dates.map(d => timestackData(struct2Days, d)),
                     showLine: true,
                     fill: "start",
                     pointBackgroundColor: C_FORT,
@@ -176,7 +176,7 @@ export function buildAvgEntryChart(runs) {
                 },
                 {
                     label: "Blind",
-                    data: dates.map(d => blindDays[d]),
+                    data: dates.map(d => timestackData(blindDays, d)),
                     showLine: true,
                     fill: "start",
                     pointBackgroundColor: C_BLIND,
@@ -185,7 +185,7 @@ export function buildAvgEntryChart(runs) {
                 },
                 {
                     label: "Stronghold Entry",
-                    data: dates.map(d => strongholdDays[d]),
+                    data: dates.map(d => timestackData(strongholdDays, d)),
                     showLine: true,
                     fill: "start",
                     pointBackgroundColor: C_STRONGHOLD,
@@ -199,9 +199,20 @@ export function buildAvgEntryChart(runs) {
             maintainAspectRatio: false,
             scales: {
                 x: {
-                    type: "category",
-                    parsing: false,
-                    title: {display: true, text: "Day #"}
+                    type: "timestack",
+                    title: { display: true, text: "Date" },
+                    timestack: {
+                        format_style: {
+                            second: undefined,
+                            minute: undefined,
+                            hour: undefined
+                        },
+                        tooltip_format: {
+                            second: undefined,
+                            minute: undefined,
+                            hour: undefined
+                        }
+                    }
                 },
                 y: {
                     type: "linear",
@@ -222,4 +233,14 @@ export function buildAvgEntryChart(runs) {
             },
         },
     });
+}
+
+function toUnixTimestamp(date) {
+    // surely mr fors will take less than 1 year to get the record
+    return new Date(`${date} ${new Date().getFullYear()} 00:00:00 GMT+0`).getTime();
+}
+
+function timestackData(data, key)
+{
+    return { x: +key, y: data[key] };
 }
