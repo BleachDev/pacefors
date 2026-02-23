@@ -1,4 +1,4 @@
-import {C_BASTION, C_BLIND, C_FORT, C_NETHER, C_OVERWORLD, C_STRONGHOLD, formatMMSS, pushOrCreate} from "./utils.js";
+import {C_BASTION, C_BLIND, C_FORT, C_NETHER, C_OVERWORLD, C_STRONGHOLD, formatMMSS, pushOrCreate} from "./helpers/utils.js";
 
 Chart.defaults.borderColor = "#252540";
 Chart.defaults.color = "#999";
@@ -8,9 +8,6 @@ Chart.defaults.elements.point.hitRadius = 10;
 Chart.defaults.elements.point.radius = 3;
 Chart.defaults.elements.line.borderWidth = 2;
 Chart.defaults.elements.line.tension = 0.25;
-
-let entryChart = null;
-let avgEntryChart = null;
 
 export function buildEntryChart(runs) {
     const netherPoints = [];
@@ -30,88 +27,89 @@ export function buildEntryChart(runs) {
             if (run.stronghold) strongholdPoints.push({ x: r, y: run.stronghold });
     }
 
-    const ctx = document.getElementById("entry-chart").getContext("2d");
+    for (const el of document.getElementsByClassName("entry-chart")) {
+        const ctx = el.getContext("2d");
 
-    if (entryChart) entryChart.destroy();
-    entryChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            datasets: [
-                {
-                    label: "Nether Entry",
-                    data: netherPoints,
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_NETHER,
-                    borderColor: C_NETHER,
-                    backgroundColor: C_OVERWORLD + "70"
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Nether Entry",
+                        data: netherPoints,
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_NETHER,
+                        borderColor: C_NETHER,
+                        backgroundColor: C_OVERWORLD + "70"
+                    },
+                    {
+                        label: "Struct 1 Entry",
+                        data: struct1Points,
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_BASTION,
+                        borderColor: C_BASTION,
+                        backgroundColor: C_NETHER + "70"
+                    },
+                    {
+                        label: "Struct 2 Entry",
+                        data: struct2Points,
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_FORT,
+                        borderColor: C_FORT,
+                        backgroundColor: C_BASTION + "70"
+                    },
+                    {
+                        label: "Blind",
+                        data: blindPoints,
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_BLIND,
+                        borderColor: C_BLIND,
+                        backgroundColor: C_FORT + "70"
+                    },
+                    {
+                        label: "Stronghold Entry",
+                        data: strongholdPoints,
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_STRONGHOLD,
+                        borderColor: C_STRONGHOLD,
+                        backgroundColor: C_BLIND + "70"
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: "linear",
+                        parsing: false,
+                        title: {display: true, text: "Run #"}
+                    },
+                    y: {
+                        type: "linear",
+                        parsing: false,
+                        min: 0,
+                        title: {display: true, text: "Entry Time"},
+                        ticks: {
+                            callback: (value) => formatMMSS(Number(value))
+                        },
+                    },
                 },
-                {
-                    label: "Struct 1 Entry",
-                    data: struct1Points,
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_BASTION,
-                    borderColor: C_BASTION,
-                    backgroundColor: C_NETHER + "70"
-                },
-                {
-                    label: "Struct 2 Entry",
-                    data: struct2Points,
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_FORT,
-                    borderColor: C_FORT,
-                    backgroundColor: C_BASTION + "70"
-                },
-                {
-                    label: "Blind",
-                    data: blindPoints,
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_BLIND,
-                    borderColor: C_BLIND,
-                    backgroundColor: C_FORT + "70"
-                },
-                {
-                    label: "Stronghold Entry",
-                    data: strongholdPoints,
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_STRONGHOLD,
-                    borderColor: C_STRONGHOLD,
-                    backgroundColor: C_BLIND + "70"
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    type: "linear",
-                    parsing: false,
-                    title: {display: true, text: "Run #"}
-                },
-                y: {
-                    type: "linear",
-                    parsing: false,
-                    min: 0,
-                    title: { display: true, text: "Entry Time" },
-                    ticks: {
-                        callback: (value) => formatMMSS(Number(value))
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => `${c.dataset.label ?? ""}: ${formatMMSS(c.parsed?.y)}`,
+                        },
                     },
                 },
             },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: (c) => `${c.dataset.label ?? ""}: ${formatMMSS(c.parsed?.y)}`,
-                    },
-                },
-            },
-        },
-    });
+        });
+    }
 }
 
 export function buildAvgEntryChart(runs) {
@@ -128,7 +126,7 @@ export function buildAvgEntryChart(runs) {
         if (run.nether) pushOrCreate(netherDays, toUnixTimestamp(run.date), run.nether);
         if (run.bastion || run.fort) pushOrCreate(struct1Days, toUnixTimestamp(run.date), !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion));
         if (run.bastion && run.fort) pushOrCreate(struct2Days, toUnixTimestamp(run.date), Math.max(run.fort, run.bastion));
-        if (run.blind)  pushOrCreate(blindDays, toUnixTimestamp(run.date), run.blind);
+        if (run.blind) pushOrCreate(blindDays, toUnixTimestamp(run.date), run.blind);
         if (run.stronghold) pushOrCreate(strongholdDays, toUnixTimestamp(run.date), run.stronghold);
     }
 
@@ -139,100 +137,101 @@ export function buildAvgEntryChart(runs) {
 
     const dates = Object.keys(netherDays);
 
-    const ctx = document.getElementById("avg-entry-chart").getContext("2d");
+    for (const el of document.getElementsByClassName("avg-entry-chart")) {
+        const ctx = el.getContext("2d");
 
-    if (avgEntryChart) entryChart.destroy();
-    avgEntryChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: dates,
-            datasets: [
-                {
-                    label: "Nether Entry",
-                    data: dates.map(d => timestackData(netherDays, d)),
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_NETHER,
-                    borderColor: C_NETHER,
-                    backgroundColor: C_OVERWORLD + "70"
-                },
-                {
-                    label: "Struct 1 Entry",
-                    data: dates.map(d => timestackData(struct1Days, d)),
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_BASTION,
-                    borderColor: C_BASTION,
-                    backgroundColor: C_NETHER + "70"
-                },
-                {
-                    label: "Struct 2 Entry",
-                    data: dates.map(d => timestackData(struct2Days, d)),
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_FORT,
-                    borderColor: C_FORT,
-                    backgroundColor: C_BASTION + "70"
-                },
-                {
-                    label: "Blind",
-                    data: dates.map(d => timestackData(blindDays, d)),
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_BLIND,
-                    borderColor: C_BLIND,
-                    backgroundColor: C_FORT + "70"
-                },
-                {
-                    label: "Stronghold Entry",
-                    data: dates.map(d => timestackData(strongholdDays, d)),
-                    showLine: true,
-                    fill: "start",
-                    pointBackgroundColor: C_STRONGHOLD,
-                    borderColor: C_STRONGHOLD,
-                    backgroundColor: C_BLIND + "70"
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    type: "timestack",
-                    title: { display: true, text: "Date" },
-                    timestack: {
-                        format_style: {
-                            second: undefined,
-                            minute: undefined,
-                            hour: undefined
-                        },
-                        tooltip_format: {
-                            second: undefined,
-                            minute: undefined,
-                            hour: undefined
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: "Nether Entry",
+                        data: dates.map(d => timestackData(netherDays, d)),
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_NETHER,
+                        borderColor: C_NETHER,
+                        backgroundColor: C_OVERWORLD + "70"
+                    },
+                    {
+                        label: "Struct 1 Entry",
+                        data: dates.map(d => timestackData(struct1Days, d)),
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_BASTION,
+                        borderColor: C_BASTION,
+                        backgroundColor: C_NETHER + "70"
+                    },
+                    {
+                        label: "Struct 2 Entry",
+                        data: dates.map(d => timestackData(struct2Days, d)),
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_FORT,
+                        borderColor: C_FORT,
+                        backgroundColor: C_BASTION + "70"
+                    },
+                    {
+                        label: "Blind",
+                        data: dates.map(d => timestackData(blindDays, d)),
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_BLIND,
+                        borderColor: C_BLIND,
+                        backgroundColor: C_FORT + "70"
+                    },
+                    {
+                        label: "Stronghold Entry",
+                        data: dates.map(d => timestackData(strongholdDays, d)),
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_STRONGHOLD,
+                        borderColor: C_STRONGHOLD,
+                        backgroundColor: C_BLIND + "70"
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: "timestack",
+                        title: {display: true, text: "Date"},
+                        timestack: {
+                            format_style: {
+                                second: undefined,
+                                minute: undefined,
+                                hour: undefined
+                            },
+                            tooltip_format: {
+                                second: undefined,
+                                minute: undefined,
+                                hour: undefined
+                            }
                         }
-                    }
+                    },
+                    y: {
+                        type: "linear",
+                        parsing: false,
+                        min: 0,
+                        title: {display: true, text: "Entry Time"},
+                        ticks: {
+                            callback: (value) => formatMMSS(Number(value))
+                        },
+                    },
                 },
-                y: {
-                    type: "linear",
-                    parsing: false,
-                    min: 0,
-                    title: { display: true, text: "Entry Time" },
-                    ticks: {
-                        callback: (value) => formatMMSS(Number(value))
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => `${c.dataset.label ?? ""}: ${formatMMSS(c.parsed?.y)}`,
+                        },
                     },
                 },
             },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: (c) => `${c.dataset.label ?? ""}: ${formatMMSS(c.parsed?.y)}`,
-                    },
-                },
-            },
-        },
-    });
+        });
+    }
 }
 
 function toUnixTimestamp(date) {

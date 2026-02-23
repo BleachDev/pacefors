@@ -18,10 +18,26 @@
 <body>
     <div class="header">
         <h1 class="header-text">Forsen Speedrun Tracker</h1>
+
+        <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 5px;">
+            <div>
+                <input type="radio" id="summary-tab" name="header-tab" checked/>
+                <label for="summary-tab">Daily Summary</label>
+            </div>
+            <div>
+                <input type="radio" id="graphs-tab" name="header-tab"/>
+                <label for="graphs-tab">Odds/Graphs</label>
+            </div>
+            <div>
+                <input type="radio" id="individual-tab" name="header-tab"/>
+                <label for="individual-tab">All Runs</label>
+            </div>
+        </div>
+
         <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
         <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
         <div style="display: inline-block">
-            <span style="color: #80ee80; font-size: 10px">v1.2.1<br>Prediction Formula Fixed <img src="./static/aware.webp" height="16"></span>
+            <span style="color: #80ee80; font-size: 10px">v1.3<br>doubters?</span>
         </div>
 
         <div style="flex: 1"></div>
@@ -33,85 +49,111 @@
     </div>
     <div id="header-runs"></div>
 
-    <div class="odds-container" id="predictions-container">
-        <h2>Predictions</h2>
-    </div>
+    <div class="summary-tab">
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap">
+            <div style="display: flex; flex-direction: column">
+                <div class="container predictions-template"></div>
 
-    <br>
-
-    <div class="odds-container">
-        <h2>Split Odds</h2>
-        <div style="display: flex; gap: 20px;">
-            <table>
-                <tr>
-                    <th></th>
-                    <th>Struct 1</th>
-                    <th>Struct 2</th>
-                    <th>Blind</th>
-                    <th>Stronghold</th>
-                    <th>End</th>
-                </tr>
-                <tr id="odds-chance">
-                    <th>Chance of<br>Enter</th>
-                </tr>
-                <tr id="odds-day-chance">
-                    <th>Chance of<br>Enter/Day</th>
-                </tr>
-            </table>
-        </div>
-    </div>
-
-    <div class="odds-container">
-        <h2>Calculator</h2>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; flex-direction: row; gap: 10px;">
-                <div style="display: flex; flex-direction: column">
-                    <label>Chance of</label>
-                    <select id="calc-type">
-                        <option>Struct 1</option>
-                        <option>Struct 2</option>
-                        <option>Blind</option>
-                        <option>Stronghold</option>
-                        <option>End</option>
-                    </select>
-                </div>
-                <div style="display: flex; flex-direction: column">
-                    <label>before </label>
-                    <input type="date" id="calc-date"/>
-                </div>
-                <div style="display: flex; flex-direction: column">
-                    <label>in under</label>
-                    <div><input type="number" id="calc-minutes" min="0" value="30"/>:<input type="number" id="calc-seconds" min="0" max="59" value="0"/></div>
+                <div id="daily-summary-container" class="container">
+                    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 30px">
+                        <h2>Daily Summary</h2>
+                        <label><select id="summary-day"></select></label>
+                    </div>
                 </div>
             </div>
-            <span class="code-block" id="calc-result">-</span>
+
+            <div style=" min-width: 500px; overflow: hidden">
+                <h2>Average Splits per Day</h2>
+                <div style="max-width: 800px"><canvas class="avg-entry-chart" height="350"></canvas></div>
+
+                <h2>Today's Runs</h2>
+                <div id="summary-runs" style="max-width: 800px; max-height: 600px; overflow: scroll"></div>
+            </div>
         </div>
     </div>
 
-    <div style="margin-top: 25px"></div>
+    <div class="graphs-tab">
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap">
+            <div style="display: flex; flex-direction: column">
+                <div class="container predictions-template"></div>
 
-    <div style="display: inline-block">
-        <h2>Average Splits per Day</h2>
-        <div style="width: 700px;">
-            <canvas id="avg-entry-chart" height="350"></canvas>
+                <div class="container">
+                    <h2>Split Odds</h2>
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>Struct 1</th>
+                            <th>Struct 2</th>
+                            <th>Blind</th>
+                            <th>Stronghold</th>
+                            <th>End</th>
+                        </tr>
+                        <tr id="odds-chance">
+                            <th>Chance of<br>Enter</th>
+                        </tr>
+                        <tr id="odds-day-chance">
+                            <th>Chance of<br>Enter/Day</th>
+                        </tr>
+
+                        <!-- Awful awful -->
+                        <tr></tr>
+                        <tr></tr>
+
+                        <tr id="odds-top10-time">
+                            <th>Top 10%<br>Time</th>
+                        </tr>
+                        <tr id="odds-avg-time">
+                            <th>Average<br>Time</th>
+                        </tr>
+                        <tr id="odds-top90-time">
+                            <th>Top 90%<br>Time</th>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="container">
+                    <h2>Calculator</h2>
+                    <div style="display: flex; flex-direction: column; gap: 10px">
+                        <div style="display: flex; gap: 20px; justify-content: center">
+                            <div style="display: flex; flex-direction: column">
+                                <label for="calc-type">Chance of</label>
+                                <select id="calc-type">
+                                    <option>Struct 1</option>
+                                    <option>Struct 2</option>
+                                    <option>Blind</option>
+                                    <option>Stronghold</option>
+                                    <option>End</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column">
+                                <label for="calc-date">before</label>
+                                <input type="date" id="calc-date"/>
+                            </div>
+                            <div style="display: flex; flex-direction: column">
+                                <label for="calc-minutes">in under</label>
+                                <div><input type="number" id="calc-minutes" min="0" value="30"/>:<input type="number" id="calc-seconds" min="0" max="59" value="0"/></div>
+                            </div>
+                        </div>
+                        <span class="code-block" id="calc-result">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex: 1; min-width: 500px; max-width: 1000px; overflow: hidden">
+                <h2>Average Splits per Day</h2>
+                <div><canvas class="avg-entry-chart" height="450"></canvas></div>
+
+                <h2>Splits by Run #</h2>
+                <div><canvas class="entry-chart" height="450"></canvas></div>
+            </div>
         </div>
     </div>
 
-    <div style="display: inline-block">
-        <h2>Splits by Run #</h2>
-        <div style="width: 700px;">
-            <canvas id="entry-chart" height="350"></canvas>
+    <div class="individual-tab">
+        <div style="text-align: left; display: inline-block">
+            <h2>All Runs</h2>
+            <div id="individual-runs"></div>
         </div>
-    </div>
-
-    <div style="margin-top: 25px"></div>
-
-    <div style="text-align: left; display: inline-block">
-        <h2>Individual Runs</h2>
-        <input type="checkbox" id="show-only-nether"/>
-        <label for="show-only-nether">Show Only Nether Entries</label>
-        <div id="runs"></div>
-        <div id="runs-tooltip"></div>
     </div>
 
     <div id="download-background">
@@ -122,30 +164,32 @@
 
     <script type="module">
         import vodRuns from "./data/stripped_runs.json" with { type: "json" };
-        import { buildRuns } from "./js/runlist.js";
-        import { buildEntryChart, buildAvgEntryChart } from "./js/graphs.js";
+        import {buildDailySummary} from "./js/summary.js";
+        import {buildEntryChart, buildAvgEntryChart} from "./js/graphs.js";
         import {buildOdds, buildCalculator, buildPredictions} from "./js/odds.js";
-        import {C_BASTION, C_FORT, C_NETHER, C_BLIND, C_STRONGHOLD, C_END, C_FINISH} from "./js/utils.js";
+        import {C_BASTION, C_FORT, C_NETHER, C_BLIND, C_STRONGHOLD, C_END, C_FINISH} from "./js/helpers/utils.js";
+        import {Runlist} from "./js/runlist.js";
 
-        async function tryImport(url, errorMessage) {
+        async function tryImport(url) {
             try {
                 const mod = await import(url, { with: { type: "json" } });
                 return mod.default ?? [];
             } catch (e) {
-                console.log(errorMessage, e);
+                console.log("Failed to Import URL", url, e);
                 return [];
             }
         }
 
-        const liveRuns = await tryImport("./data/live_stripped_runs.json", "Live data not found");
+        const liveRuns = await tryImport("./data/live_stripped_runs.json");
         const runs = vodRuns.concat(liveRuns);
 
-        buildRuns(runs);
         buildEntryChart(runs);
         buildAvgEntryChart(runs);
         buildOdds(runs);
         buildCalculator(runs);
         buildPredictions(runs);
+        buildDailySummary(runs);
+        new Runlist(document.getElementById("individual-runs"), runs);
 
         // Init Header stats
         document.getElementById("header-runs").innerHTML = `
@@ -160,17 +204,17 @@
         `;
 
         // Init download links
-        tryImport("./data/index.json", "Dataset Index not found").then(index => {
+        tryImport("./data/index.json").then(index => {
             let str = "<span>Processed Combined Data</span>";
             let lastItem;
-            index.forEach(item => {
+            index.sort((a, b) => a.path.split("/").length - b.path.split("/").length || a.path.localeCompare(b.path)).forEach(item => {
                 if (item.path.match(/[/\\]/) && !lastItem?.path?.match(/[/\\]/)) {
                     str += `<hr><span>Raw Daily Data</span>`;
                 }
 
                 str += `
-                <div class="" style="text-align: left">
-                    <a href="./data/${item.path}" class="dataset-link" download="" style="display: inline-block; width: 200px">${item.path}</a>
+                <div style="text-align: left">
+                    <a href="./data/${item.path}" class="dataset-link" download="" style="display: inline-block; width: 280px">${item.path}</a>
                     <span style="color: #aaa; font-size: 12px">${(item.size / 1000).toFixed(2)} KB</span>
                 </div>`;
                 lastItem = item;
@@ -178,11 +222,25 @@
 
             document.getElementById("download-container").innerHTML += str;
         });
+
         document.getElementById("download-background").onclick = e => {
             if (e.target.id === "download-background") {
                 document.getElementById("download-background").style.display = "none";
             }
         }
+
+        // Init tabs
+        const tabs = [ "summary-tab", "graphs-tab", "individual-tab" ];
+        const onChange = () => {
+            const selectedTab = tabs.find(tab => document.getElementById(tab).checked);
+            tabs.forEach(tab => {
+                for (const e of document.getElementsByClassName(tab))
+                    e.style.display = tab === selectedTab ? "block" : "none";
+            });
+        };
+
+        tabs.forEach(tab => document.getElementById(tab).onchange = onChange);
+        onChange();
     </script>
 </body>
 </html>

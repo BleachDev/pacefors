@@ -107,9 +107,12 @@ def strip_runs(runs: list[dict]) -> list[dict]:
         if run["blindI"] > -1: stripped_run["blind"] = seconds(run["data"][run["blindI"]]["timer"])
         if run["strongholdI"] > -1: stripped_run["stronghold"] = seconds(run["data"][run["strongholdI"]]["timer"])
 
-        death_msg = next((e["death"] for e in reversed(run["data"]) if "LUL" in (e.get("death") or "")), "")
-        if death_msg:
-            stripped_run["death"] = death_msg
+        death_firsti = next((i for i in range(len(run["data"])) if "LUL" in (run["data"][i].get("death") or "")), -1)
+        death_lasti = next((i for i in reversed(range(len(run["data"]))) if "LUL" in (run["data"][i].get("death") or "")), len(run["data"]) - 1)
+        if death_firsti > -1:
+            stripped_run["death"] = run["data"][death_firsti]["death"]
+            stripped_run["deathStart"] = seconds(run["data"][death_firsti]["timer"])
+            stripped_run["deathEnd"] = seconds(run["data"][death_lasti]["timer"])
 
         # List of vod timestamps every 5 IGT timer seconds
         stripped_run["timestamps"] = []

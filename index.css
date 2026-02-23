@@ -50,8 +50,7 @@ input[type="number"] {
     width: 45px;
 }
 
-th, td, .th-like {
-    margin: 1px;
+th, td {
     padding: 0 6px;
     background-color: var(--background);
 }
@@ -76,6 +75,36 @@ hr {
     display: inline-block;
 }
 
+/* Tabs (radio + label) */
+input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+label[for$="-tab"] {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    width: 120px;
+    min-width: max-content;
+    padding: 0 12px;
+    cursor: pointer;
+
+    background: var(--background);
+    border-bottom: 6px solid #ccc;
+    user-select: none;
+    transition-duration: 0.2s;
+}
+
+label[for$="-tab"]:hover {
+    background: #303050;
+}
+
+input[type="radio"]:checked + label[for$="-tab"] {
+    border-color: var(--end);
+}
+
 #header-runs {
     display: flex;
     justify-content: center;
@@ -90,7 +119,11 @@ hr {
     border-bottom-right-radius: 4px;
 }
 
-.odds-container {
+.summary-tab, .graphs-tab, .individual-tab {
+    margin: 10px 20px;
+}
+
+.container {
     background-color: var(--background-accent);
     display: inline-block;
     vertical-align: top;
@@ -102,6 +135,7 @@ hr {
 #calc-result {
     width: fit-content;
     margin: 4px auto;
+    font-weight: bold;
     color: var(--finish);
 }
 
@@ -112,7 +146,14 @@ hr {
     margin: 10px 0;
 }
 
-#runs {
+.runs-settings {
+    display: flex;
+    gap: 2px 40px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.runs {
     background-image: linear-gradient(
             to right,
             var(--background) 0 var(--grid-x-offset),
@@ -147,7 +188,8 @@ hr {
 }
 
 .run-bar-container {
-    display: inline-block
+    display: inline-block;
+    position: relative;
 }
 
 .run-bar {
@@ -170,13 +212,27 @@ hr {
     border-bottom-right-radius: 4px;
 }
 
+.run-death-indicator {
+    position: absolute;
+    top: 2px;
+    height: 14px;
+    animation: death-pulse 1s ease-in-out infinite;
+    z-index: 1;
+}
+
+@keyframes death-pulse {
+    0% { background-color: #ff000040; }
+    50% { background-color: #ff000080; }
+    100% { background-color: #ff000040; }
+}
+
 .run-bar-desc {
     color: #777;
     font-size: 0.75em;
     margin-left: 5px;
 }
 
-#runs-tooltip {
+.runs-tooltip {
     position: fixed;
     pointer-events: none;
     padding: 4px 8px;
@@ -185,6 +241,7 @@ hr {
     color: #eee;
     border-radius: 6px;
     font-size: 12px;
+    z-index: 2;
 }
 
 .live-run {
@@ -196,15 +253,9 @@ hr {
 }
 
 @keyframes live-run-pulse {
-    0% {
-        background-color: #ff000020;
-    }
-    50% {
-        background-color: #ff000040;
-    }
-    100% {
-        background-color: #ff000020;
-    }
+    0% { background-color: #ff000020; }
+    50% { background-color: #ff000040; }
+    100% { background-color: #ff000020; }
 }
 
 #download-text {

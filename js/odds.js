@@ -5,30 +5,55 @@ import {
     C_FORT,
     C_STRONGHOLD,
     C_FINISH,
-    fitLogNormal,
     formatMMSS,
-    logNormalCdfSeconds,
-    pushOrCreate,
     toSeconds
-} from "./utils.js";
+} from "./helpers/utils.js";
+import {fitLogNormal, getSplits, logNormalCdfSeconds, logNormalInvCdfSeconds} from "./helpers/runhelper.js";
 
 export function buildOdds(runs) {
-    const [s1Entries, s2Entries, blinds,  strongholds, totalRunCount] = getSplits(runs);
+    const [totalRunCount, ...splits] = getSplits(runs);
 
     const totalCount = reduceToSum(totalRunCount);
     const avgDayRuns = totalCount / Object.keys(totalRunCount).length;
 
     const colors = [ C_BASTION, C_FORT, C_BLIND, C_STRONGHOLD, C_END ];
-    const totals = [ reduceToLength(s1Entries), reduceToLength(s2Entries), reduceToLength(blinds), reduceToLength(strongholds), 0];
+    const totals = splits.map(reduceToLength);
     const chances = totals.map(c => c / totalCount);
 
     document.getElementById("odds-chance").innerHTML += chances.map((c, i) =>
-        `<td style="color: ${colors[i]}">${(c * 100).toFixed(2)}% (${totals[i]})</td>`
+        `<td style="color: ${colors[i]}">${(c * 100).toFixed(2)}%<br>(${totals[i]})</td>`
     ).join("");
 
     document.getElementById("odds-day-chance").innerHTML += chances.map((c, i) =>
         `<td style="color: ${colors[i]}">${((1 - Math.pow(1 - c, avgDayRuns)) * 100).toFixed(2)}%</td>`
     ).join("");
+
+    // Time percentile rows (10% / 50% / 90%) based on log-normal fits
+    const fits = splits.map(s => fitLogNormal(Object.values(s).flat()));
+
+    const top10Row = document.getElementById("odds-top10-time");
+    const avgRow = document.getElementById("odds-avg-time");
+    const top90Row = document.getElementById("odds-top90-time");
+
+    const cell = (i, text) => `<td style="color: ${colors[i]}">${text}</td>`;
+
+    top10Row.innerHTML += fits.map((fit, i) => {
+        if (!fit) return cell(i, "\-");
+        const s = logNormalInvCdfSeconds(0.10, fit.mu, fit.sigma);
+        return cell(i, formatMMSS(Math.round(s)));
+    }).join("");
+
+    avgRow.innerHTML += fits.map((fit, i) => {
+        if (!fit) return cell(i, "\-");
+        const s = logNormalInvCdfSeconds(0.50, fit.mu, fit.sigma);
+        return cell(i, formatMMSS(Math.round(s)));
+    }).join("");
+
+    top90Row.innerHTML += fits.map((fit, i) => {
+        if (!fit) return cell(i, "\-");
+        const s = logNormalInvCdfSeconds(0.90, fit.mu, fit.sigma);
+        return cell(i, formatMMSS(Math.round(s)));
+    }).join("");
 }
 
 const typeEl = document.getElementById("calc-type");
@@ -38,20 +63,15 @@ const secEl = document.getElementById("calc-seconds");
 const outEl = document.getElementById("calc-result");
 
 export function buildCalculator(runs) {
-    const [s1Entries, s2Entries, blinds, strongholds, totalRunCount] = getSplits(runs);
+    const [ totalRunCount, ...splits] = getSplits(runs);
 
     const totalCount = reduceToSum(totalRunCount);
     const avgDayRuns = totalCount / Object.keys(totalRunCount).length;
 
-    const totals = [ reduceToLength(s1Entries), reduceToLength(s2Entries), reduceToLength(blinds), reduceToLength(strongholds), 0];
+    const totals = splits.map(reduceToLength);
     const chances = totals.map(c => c / totalCount);
 
-    const s1Fit = fitLogNormal(Object.values(s1Entries).flat());
-    const s2Fit = fitLogNormal(Object.values(s2Entries).flat());
-    const blindFit = fitLogNormal(Object.values(blinds).flat());
-    const strongholdFit = fitLogNormal(Object.values(strongholds).flat());
-
-    const fits = [s1Fit, s2Fit, blindFit, strongholdFit, null];
+    const fits = splits.map(s => fitLogNormal(Object.values(s).flat()));
 
     const recalc = () => {
         const cutoff = toSeconds(minEl.value, secEl.value);
@@ -72,7 +92,7 @@ export function buildCalculator(runs) {
 
         const fit = fits[typeEl.selectedIndex];
         if (!fit) {
-            outEl.innerHTML = `Not Enough Data <img src="/static/forsenHoppedin.webp" height="16">`;
+            outEl.innerHTML = `Not Enough Data <img src="/static/forsenHoppedin.webp" height="16" alt="">`;
             return;
         }
 
@@ -92,7 +112,7 @@ export function buildCalculator(runs) {
 }
 
 export function buildPredictions(runs) {
-    const [, , blinds, , totalRunCount] = getSplits(runs);
+    const [totalRunCount, , , blinds] = getSplits(runs);
 
     const totalCount = reduceToSum(totalRunCount);
     const avgDayRuns = totalCount / Object.keys(totalRunCount).length;
@@ -108,12 +128,12 @@ export function buildPredictions(runs) {
     const RECORD_TIME = 14 * 60 + 27;
 
     // Segment assumptions (in seconds)
-    const BLIND_TO_STRONGHOLD_TIME = 120; // 3:30
+    const BLIND_TO_STRONGHOLD_TIME = 120;
     const BLIND_TO_STRONGHOLD_P = 0.25;
-    const STRONGHOLD_TO_END_TIME = 60; // 1:30
-    const STRONGHOLD_TO_END_P = 0.60;
-    const END_TO_FINISH_TIME = 120; // 2:15
-    const END_TO_FINISH_P = 0.2;
+    const STRONGHOLD_TO_END_TIME = 60;
+    const STRONGHOLD_TO_END_P = 0.70;
+    const END_TO_FINISH_TIME = 120;
+    const END_TO_FINISH_P = 0.25;
 
     // Calculate required blind time to beat Record
     const requiredBlindTime = RECORD_TIME - (BLIND_TO_STRONGHOLD_TIME + STRONGHOLD_TO_END_TIME + END_TO_FINISH_TIME);
@@ -132,7 +152,7 @@ export function buildPredictions(runs) {
     let daysCumulative50 = 0;
     let daysCumulative90 = 0;
     let cumulative = 0;
-    while (cumulative < 0.9 && daysCumulative90 < 100000000) {
+    while (cumulative < 0.9 && daysCumulative90 < 10000000) {
         if (cumulative < 0.1) daysCumulative10++;
         if (cumulative < 0.5) daysCumulative50++;
         daysCumulative90++;
@@ -149,92 +169,66 @@ export function buildPredictions(runs) {
     const date90 = new Date();
     date90.setDate(date90.getDate() + daysCumulative90);
 
-    const container = document.getElementById("predictions-container");
-    container.innerHTML += `
-        <p style="font-size: 16px; color: ${C_FINISH}; margin: 5px 0 10px 0;">
-            <strong>Record Date</strong><br>
-            <span style="font-size: 18px">
-                ${date50.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </span>
-        </p>
-        
-        <div style="display: flex; justify-content: center; gap: 30px">
-            <p style="font-size: 12px; color: #999; margin: 5px 0;">
-                <i>90% Chance After</i><br>
-                <span style="font-size: 14px">
-                    ${date10.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+    for (const el of document.getElementsByClassName("predictions-template")) {
+        el.innerHTML += `
+            <h2>Predictions</h2>
+            <p style="font-size: 16px; color: ${C_FINISH}; margin: 5px 0 10px 0;">
+                <strong>Record Date</strong><br>
+                <span style="font-size: 18px">
+                    ${date50.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
                 </span>
             </p>
             
-            <p style="font-size: 12px; color: #999; margin: 5px 0;">
-                <i>90% Chance Before</i><br>
-                <span style="font-size: 14px">
-                    ${date90.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </span>
-            </p>
-        </div>
-        
-        <details>
-            <summary style="cursor: pointer; color: #aaa; margin-top: 5px; text-align: left">
-                <i>Show more details</i>
-            </summary>
-            
-            <div style="text-align: left; line-height: 1.5;">
-                <p><strong>Record to Beat:</strong> 14:27 (${RECORD_TIME}s)</p>
-                <p><strong>Baseline Data:</strong> ${blindCount} blinds from ${totalCount} runs</p>
-                <p><strong>Assumptions:</strong></p>
-                <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li>Blind → Stronghold: ${formatMMSS(BLIND_TO_STRONGHOLD_TIME)} (${~~(BLIND_TO_STRONGHOLD_P*100)}% success rate)</li>
-                    <li>Stronghold → End: ${formatMMSS(STRONGHOLD_TO_END_TIME)} (${~~(STRONGHOLD_TO_END_P*100)}% success rate)</li>
-                    <li>End → Finish: ${formatMMSS(END_TO_FINISH_TIME)} (${~~(END_TO_FINISH_P*100)}% success rate)</li>
-                </ul>
-                <p><strong>Required blind time:</strong> < ${formatMMSS(requiredBlindTime)}</p>
-                <p><strong>Chance per run:</strong> ${(pRecordPerRun * 100).toFixed(4)}%</p>
-                <p><strong>Chance per day:</strong> ${(pSuccessPerDay * 100).toFixed(2)}%</p>
-                <hr>
-                <div class="code-block">
-                    <p style="font-size: 16px; color: ${C_FINISH}; margin: 5px 0;">
-                        <strong>>50% Probability:</strong>
-                        ${date50.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        <span style="color: #aaa; font-size: 13px;">
-                            - ${daysCumulative50} days from now
-                        </span>
-                    </p>
-                    <p style="color: #999; font-size: 12px; margin: 5px 0 5px 20px; font-style: italic;">
-                        <i>50% chance record is beaten by this date (earliest threshold)</i>
-                    </p>
-                </div>
+            <div style="display: flex; justify-content: center; gap: 30px">
+                <p style="font-size: 12px; color: #999; margin: 5px 0;">
+                    <i>90% Chance After</i><br>
+                    <span style="font-size: 14px">
+                        ${date10.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                    </span>
+                </p>
+                
+                <p style="font-size: 12px; color: #999; margin: 5px 0;">
+                    <i>90% Chance Before</i><br>
+                    <span style="font-size: 14px">
+                        ${date90.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                    </span>
+                </p>
             </div>
-        </details>
-    `;
-}
-
-function getSplits(runs, dayLimit = 20) {
-    const s1Entries = {};
-    const s2Entries = {};
-    const blinds = {};
-    const strongholds = {};
-    const totalRunCount = {};
-    for (let r = runs.length - 1; r >= 0; r--) {
-        const run = runs[r];
-        if (Object.keys(totalRunCount).length === dayLimit && !s2Entries[run.date]) break;
-
-        totalRunCount[run.date] = (totalRunCount[run.date] ?? 0) + 1;
-
-        const s1entry = run.bastion || run.fort ? Math.min(run.bastion ?? Infinity, run.fort ?? Infinity) : null;
-        if (s1entry) pushOrCreate(s1Entries, run.date, s1entry);
-
-        const s2entry = run.bastion && run.fort ? Math.max(run.bastion, run.fort) : null;
-        if (s2entry) pushOrCreate(s2Entries, run.date, s2entry);
-
-        const blind = s2entry !== null && run.blind ? run.blind : null;
-        if (blind) pushOrCreate(blinds, run.date, blind);
-
-        const stronghold = blind !== null && run.stronghold ? run.stronghold : null;
-        if (stronghold) pushOrCreate(strongholds, run.date, stronghold);
+            
+            <details>
+                <summary style="cursor: pointer; color: #aaa; margin-top: 5px; text-align: left">
+                    <i>Show more details</i>
+                </summary>
+                
+                <div style="text-align: left; line-height: 1.5;">
+                    <p><strong>Record to Beat:</strong> 14:27 (${RECORD_TIME}s)</p>
+                    <p><strong>Baseline Data:</strong> ${blindCount} blinds from ${totalCount} runs</p>
+                    <p><strong>Assumptions:</strong></p>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        <li>Blind → Stronghold: ${formatMMSS(BLIND_TO_STRONGHOLD_TIME)} (${~~(BLIND_TO_STRONGHOLD_P * 100)}% success rate)</li>
+                        <li>Stronghold → End: ${formatMMSS(STRONGHOLD_TO_END_TIME)} (${~~(STRONGHOLD_TO_END_P * 100)}% success rate)</li>
+                        <li>End → Finish: ${formatMMSS(END_TO_FINISH_TIME)} (${~~(END_TO_FINISH_P * 100)}% success rate)</li>
+                    </ul>
+                    <p><strong>Required blind time:</strong> < ${formatMMSS(requiredBlindTime)}</p>
+                    <p><strong>Chance per run:</strong> ${(pRecordPerRun * 100).toFixed(4)}%</p>
+                    <p><strong>Chance per day:</strong> ${(pSuccessPerDay * 100).toFixed(2)}%</p>
+                    <hr>
+                    <div class="code-block">
+                        <p style="font-size: 16px; color: ${C_FINISH}; margin: 5px 0;">
+                            <strong>>50% Probability:</strong>
+                            ${date50.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                            <span style="color: #aaa; font-size: 13px;">
+                                - ${daysCumulative50} days from now
+                            </span>
+                        </p>
+                        <p style="color: #999; font-size: 12px; margin: 5px 0 5px 20px; font-style: italic;">
+                            <i>50% chance record is beaten by this date (earliest threshold)</i>
+                        </p>
+                    </div>
+                </div>
+            </details>
+        `;
     }
-
-    return [ s1Entries, s2Entries, blinds, strongholds, totalRunCount ];
 }
 
 function reduceToSum(obj) {

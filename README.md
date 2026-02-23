@@ -1,11 +1,16 @@
-# Pacefors <img src="static/forsenHoppedin.webp" alt="ForsenHoppedin" />
+# Pacefors <img src="static/SmugTime.webp" alt="ForsenHoppedin" />
 
 Pacefors is a web app that tracks Forsens Minecraft Speedruns with split/death data using text recognition (OCR) from his streams.  
 Data is automatically collected and pushed using GitHub Actions, and the app is hosted on GitHub Pages.
 
-### Website
+## Website
 The frontend small vanilla JS web app that parses the `stripped_runs.json` data created by the scripts below and visualizes it.  
 It also has a calculator tool that statistically estimates the chance of hitting certain splits under a target time by a chosen date.
+
+## Data Collection
+
+Data is collected using a python script (`run.py`) that either runs on a VOD or on the live stream, and writes the raw data to JSON files.  
+GitHub Actions is used to manually (and automatically, though this is not implemented yet) run the script and push the output JSON files to the repository.
 
 ### Scripts (`/python`)
 #### `run.py`  
@@ -25,15 +30,3 @@ Processes all the output JSON files through 3 stages and writes the final output
 Self-explanatory, checks if Forsen is live and if hes in the Minecraft category  
 Returns exit code `0` if he's offline, `1` if hes NOT playing Minecraft, and `2` if he's live and playing Minecraft.  
 Also has a `--wait` option that hangs the script if he's live not in the Minecraft category, and waits until he starts playing Minecraft, used by the GitHub Workflow.
-
-### GitHub Actions
-#### `live-scheduled.yml`  
-Scheduled to run every day at 15:30 UTC, checks if Forsen is live, and if so waits until he's in the Minecraft category,  
-then runs `run.py live` to capture the live stream until it ends,  
-while its running every 5 minutes it runs `merge_outputs.py` and pushes the updated data to the repo, so the website can update in (almost) real-time.  
-
-
-
-#### `vod-scheduled.yml`  
-TODO: Not implemented yet, but should run at midnight UTC every day, check if there are any live files,  
-and if so start a full recapture of the VOD since the live capture is not perfect, uploads it and deletes the old live data.
