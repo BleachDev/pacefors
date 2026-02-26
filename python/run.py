@@ -12,8 +12,8 @@ import easyocr
 
 QUALITY = "1080p60"
 
-VOD_URL = os.environ.get("VOD_URL", "https://www.twitch.tv/videos/2694966994")
-START_TIMESTAMP = os.environ.get("START_TIMESTAMP", "01:16:22")
+VOD_URL = os.environ.get("VOD_URL", "https://www.twitch.tv/videos/2706487243")
+START_TIMESTAMP = os.environ.get("START_TIMESTAMP", "04:00:33")
 VOD_DATE = os.environ.get("VOD_DATE", "Feb 11")
 LIVE = len(sys.argv) > 1 and sys.argv[1] == "live"
 
@@ -45,8 +45,8 @@ DEATH_HEIGHT_E = BLACK_BAR(int(HEIGHT * 0.36))
 
 NINJABRAIN_WIDTH = int(WIDTH * 0.833)
 NINJABRAIN_WIDTH_E = int(WIDTH * 0.897)
-NINJABRAIN_HEIGHT = BLACK_BAR(int(HEIGHT * 0.213))
-NINJABRAIN_HEIGHT_E = BLACK_BAR(int(HEIGHT * 0.233))
+NINJABRAIN_HEIGHT = BLACK_BAR(int(HEIGHT * 0.180))
+NINJABRAIN_HEIGHT_E = BLACK_BAR(int(HEIGHT * 0.250))
 
 HEART_WIDTH = int(WIDTH * 0.318)
 HEART_HEIGHT = BLACK_BAR(int(HEIGHT * 0.8622))
@@ -182,7 +182,7 @@ try:
 
             ts = time.strftime("%Y%m%d_%H%M%S")
             filename = f"{DEBUG_DIR}/frame_{ts}_{frame_idx:06d}"
-            #cv2.imwrite(filename + "_h.png", timer_hsv)
+            #cv2.imwrite(filename + "_h.png", ninjabrain_cropped)
             #cv2.imwrite(filename + "_p.png", acv_hsv)
             #cv2.imwrite(filename + "_heart.png", frame[HEART_HEIGHT-10:HEART_HEIGHT+10, HEART_WIDTH-10:HEART_WIDTH+10])
 
