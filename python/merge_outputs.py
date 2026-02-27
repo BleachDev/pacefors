@@ -73,6 +73,10 @@ def build_runs(raw_data: list[dict]) -> list[dict]:
                 fort_i = _find_index(lambda r: "Terri" in r.get("achievement", ""))
                 blind_i = _find_index(
                     lambda r: "Certain" in r.get("ninja", "")) if bastion_i > -1 and fort_i > -1 else -1
+                stronghold_i = _find_index(
+                        lambda r: "ue Sp" in r.get("achievement", "") or "ye Sp" in r.get("achievement", "")) if blind_i > -1 else -1
+                end_i = _find_index(
+                    lambda r: "The End" in r.get("achievement", "")) if stronghold_i > -1 else -1
 
                 run = {
                     "date": day["date"],
@@ -81,9 +85,8 @@ def build_runs(raw_data: list[dict]) -> list[dict]:
                     "bastionI": bastion_i,
                     "fortI": fort_i,
                     "blindI": blind_i,
-                    "strongholdI": _find_index(
-                        lambda r: "ue Sp" in r.get("achievement", "") or "ye Sp" in r.get("achievement",
-                                                                                          "")) if blind_i > -1 else -1,
+                    "strongholdI": stronghold_i,
+                    "endI": end_i,
                     "data": current_run,
                 }
                 runs.append(run)
@@ -106,6 +109,7 @@ def strip_runs(runs: list[dict]) -> list[dict]:
         if run["fortI"] > -1: stripped_run["fort"] = seconds(run["data"][run["fortI"]]["timer"])
         if run["blindI"] > -1: stripped_run["blind"] = seconds(run["data"][run["blindI"]]["timer"])
         if run["strongholdI"] > -1: stripped_run["stronghold"] = seconds(run["data"][run["strongholdI"]]["timer"])
+        if run["endI"] > -1: stripped_run["end"] = seconds(run["data"][run["endI"]]["timer"])
 
         death_firsti = next((i for i in range(len(run["data"])) if "LUL" in (run["data"][i].get("death") or "")), -1)
         death_lasti = next((i for i in reversed(range(len(run["data"]))) if "LUL" in (run["data"][i].get("death") or "")), len(run["data"]) - 1)
