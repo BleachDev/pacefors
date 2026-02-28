@@ -123,6 +123,7 @@ export function fitLogNormal(samples) {
 
 // Get split times for runs in the last {dayLimit} day, grouped by day.
 export function getSplits(runs, dayLimit = Infinity) {
+    const netherEntries = {};
     const s1Entries = {};
     const s2Entries = {};
     const blinds = {};
@@ -135,6 +136,9 @@ export function getSplits(runs, dayLimit = Infinity) {
         if (Object.keys(totalRunCount).length === dayLimit && !s2Entries[run.date]) break;
 
         totalRunCount[run.date] = (totalRunCount[run.date] ?? 0) + 1;
+
+        const netherEntry = run.nether ? run.nether : null;
+        if (netherEntry) pushOrCreate(netherEntries, run.date, netherEntry);
 
         const s1entry = run.bastion || run.fort ? Math.min(run.bastion ?? Infinity, run.fort ?? Infinity) : null;
         if (s1entry) pushOrCreate(s1Entries, run.date, s1entry);
@@ -152,5 +156,5 @@ export function getSplits(runs, dayLimit = Infinity) {
         if (end) pushOrCreate(ends, run.date, end);
     }
 
-    return [ totalRunCount, s1Entries, s2Entries, blinds, strongholds, ends ];
+    return [ totalRunCount, netherEntries, s1Entries, s2Entries, blinds, strongholds, ends ];
 }

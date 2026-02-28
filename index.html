@@ -82,6 +82,7 @@
                     <table>
                         <tr>
                             <th></th>
+                            <th>Nether</th>
                             <th>Struct 1</th>
                             <th>Struct 2</th>
                             <th>Blind</th>
@@ -118,6 +119,7 @@
                             <div style="display: flex; flex-direction: column">
                                 <label for="calc-type">Chance of</label>
                                 <select id="calc-type">
+                                    <option>Nether</option>
                                     <option>Struct 1</option>
                                     <option>Struct 2</option>
                                     <option>Blind</option>
@@ -199,7 +201,7 @@
             <span>Forts <span style="color: ${C_FORT}">${runs.filter(r => r.fort).length}</span></span>
             <span>Blinds <span style="color: ${C_BLIND}">${runs.filter(r => r.blind).length}</span></span>
             <span>Strongholds <span style="color: ${C_STRONGHOLD}">${runs.filter(r => r.stronghold).length}</span></span>
-            <span>Ends <span style="color: ${C_END}">0</span></span>
+            <span>Ends <span style="color: ${C_END}">${runs.filter(r => r.end).length}</span></span>
             <span>Finishes <span style="color: ${C_FINISH}">0</span></span>
         `;
 

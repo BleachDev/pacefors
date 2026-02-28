@@ -1,4 +1,14 @@
-import {C_BASTION, C_BLIND, C_FORT, C_NETHER, C_OVERWORLD, C_STRONGHOLD, formatMMSS, pushOrCreate} from "./helpers/utils.js";
+import {
+    C_BASTION,
+    C_BLIND,
+    C_END,
+    C_FORT,
+    C_NETHER,
+    C_OVERWORLD,
+    C_STRONGHOLD,
+    formatMMSS,
+    pushOrCreate
+} from "./helpers/utils.js";
 
 Chart.defaults.borderColor = "#252540";
 Chart.defaults.color = "#999";
@@ -15,6 +25,7 @@ export function buildEntryChart(runs) {
     const struct2Points = [];
     const blindPoints = [];
     const strongholdPoints = [];
+    const endPoints = [];
 
     // Use same reverse ordering convention as buildRuns (latest first)
     for (let r = runs.length - 1; r > 0; r--) {
@@ -24,7 +35,8 @@ export function buildEntryChart(runs) {
         if (run.bastion || run.fort) struct1Points.push({ x: r, y: !run.bastion ? run.fort : !run.fort ? run.bastion : Math.min(run.fort, run.bastion) });
         if (run.bastion && run.fort) struct2Points.push({ x: r, y: Math.max(run.fort, run.bastion) });
         if (run.blind) blindPoints.push({ x: r, y: run.blind });
-            if (run.stronghold) strongholdPoints.push({ x: r, y: run.stronghold });
+        if (run.stronghold) strongholdPoints.push({ x: r, y: run.stronghold });
+        if (run.end) endPoints.push({ x: r, y: run.end });
     }
 
     for (const el of document.getElementsByClassName("entry-chart")) {
@@ -79,6 +91,15 @@ export function buildEntryChart(runs) {
                         borderColor: C_STRONGHOLD,
                         backgroundColor: C_BLIND + "70"
                     },
+                    {
+                        label: "End Entry",
+                        data: endPoints,
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_END,
+                        borderColor: C_END,
+                        backgroundColor: C_STRONGHOLD + "70"
+                    }
                 ],
             },
             options: {
@@ -118,6 +139,7 @@ export function buildAvgEntryChart(runs) {
     const struct2Days = {};
     const blindDays = {};
     const strongholdDays = {};
+    const endDays = {};
 
     // Use same reverse ordering convention as buildRuns (latest first)
     for (let r = 0; r < runs.length; r++) {
@@ -128,10 +150,11 @@ export function buildAvgEntryChart(runs) {
         if (run.bastion && run.fort) pushOrCreate(struct2Days, toUnixTimestamp(run.date), Math.max(run.fort, run.bastion));
         if (run.blind) pushOrCreate(blindDays, toUnixTimestamp(run.date), run.blind);
         if (run.stronghold) pushOrCreate(strongholdDays, toUnixTimestamp(run.date), run.stronghold);
+        if (run.end) pushOrCreate(endDays, toUnixTimestamp(run.date), run.end);
     }
 
     // Average the times for each day
-    [netherDays, struct1Days, struct2Days, blindDays, strongholdDays].forEach(dayObj => {
+    [netherDays, struct1Days, struct2Days, blindDays, strongholdDays, endDays].forEach(dayObj => {
         Object.entries(dayObj).forEach(([k, v]) => dayObj[k] = v.reduce((a, b) => a + b, 0) / v.length);
     });
 
@@ -190,6 +213,15 @@ export function buildAvgEntryChart(runs) {
                         borderColor: C_STRONGHOLD,
                         backgroundColor: C_BLIND + "70"
                     },
+                    {
+                        label: "End Entry",
+                        data: dates.map(d => timestackData(endDays, d)),
+                        showLine: true,
+                        fill: "start",
+                        pointBackgroundColor: C_END,
+                        borderColor: C_END,
+                        backgroundColor: C_STRONGHOLD + "70"
+                    }
                 ],
             },
             options: {

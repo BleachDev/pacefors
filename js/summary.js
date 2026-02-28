@@ -41,18 +41,18 @@ export function buildDailySummary(runs) {
                     <th>Pace<br>fors™</th>
                 </tr>
                 ${NAMES.map((name, i) => {
-                    const daySplits = i < 2 || i > 5 ? null : splits[i - 1][daySelect.value];
+                    const daySplits = i === 0 || i > 6 ? null : splits[i][daySelect.value];
                     const dayAvg = daySplits ? daySplits.reduce((a, b) => a + b, 0) / daySplits.length : null;
                     
-                    const totalSplits = i < 2 || i > 5 ? null : Object.values(splits[i - 1]).flat() ?? [];
+                    const totalSplits = i === 0 || i > 6 ? null : Object.values(splits[i]).flat() ?? [];
                     const totalAvg = totalSplits ? totalSplits.reduce((a, b) => a + b, 0) / totalSplits.length : null;
                     return `
                     <tr>
                         <td>${name}</td>
                         <td style="color: ${COLORS[i]}">${dayRuns.filter(FILTERS[i]).length}</td>
-                        <td>${i < 2 ? "" : dayAvg ? formatMMSS(dayAvg) : "-"}</td>
-                        <td style="color: #999">${i < 2 ? "" : totalAvg ? formatMMSS(totalAvg) : "-"}</td>
-                        <td>${!dayAvg || !totalAvg ? "" : (dayAvg < totalAvg ? "<span style='color: #99cc99'>-" : "<span style='color: #ee8888'>+") + formatMMSS(Math.abs(dayAvg - totalAvg)) + "<span>"}</td>
+                        <td>${i === 0 ? "" : dayAvg ? formatMMSS(dayAvg) : "-"}</td>
+                        <td style="color: #999">${i === 0 ? "" : totalAvg ? formatMMSS(totalAvg) : "-"}</td>
+                        <td>${!dayAvg || !totalAvg ? "" : (dayAvg <= totalAvg ? "<span style='color: #99cc99'>-" : "<span style='color: #ee8888'>+") + formatMMSS(Math.abs(dayAvg - totalAvg)) + "<span>"}</td>
                     </tr>
                 `}).join("")}
             </table>

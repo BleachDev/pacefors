@@ -1,4 +1,5 @@
 import {
+    C_NETHER,
     C_BASTION,
     C_BLIND,
     C_END,
@@ -16,7 +17,7 @@ export function buildOdds(runs) {
     const totalCount = reduceToSum(totalRunCount);
     const avgDayRuns = totalCount / Object.keys(totalRunCount).length;
 
-    const colors = [ C_BASTION, C_FORT, C_BLIND, C_STRONGHOLD, C_END ];
+    const colors = [ C_NETHER, C_BASTION, C_FORT, C_BLIND, C_STRONGHOLD, C_END ];
     const totals = splits.map(reduceToLength);
     const chances = totals.map(c => c / totalCount);
 
@@ -112,7 +113,7 @@ export function buildCalculator(runs) {
 }
 
 export function buildPredictions(runs) {
-    const [totalRunCount, , , blinds] = getSplits(runs);
+    const [totalRunCount, , , , blinds] = getSplits(runs);
 
     const totalCount = reduceToSum(totalRunCount);
     const avgDayRuns = totalCount / Object.keys(totalRunCount).length;

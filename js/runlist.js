@@ -1,4 +1,14 @@
-import {seconds, formatMMSS} from "./helpers/utils.js";
+import {
+    seconds,
+    formatMMSS,
+    C_NETHER,
+    C_FORT,
+    C_BASTION,
+    C_BLIND,
+    C_STRONGHOLD,
+    C_END,
+    C_FINISH
+} from "./helpers/utils.js";
 
 // Amount of pixels to the left of run bars
 const RUNS_MARGIN = 220;
@@ -27,6 +37,8 @@ export class Runlist {
                         <option value="struct2">Struct 2</option>
                         <option value="blind">Blind</option>
                         <option value="stronghold">Stronghold</option>
+                        <option value="end">End</option>
+                        <option value="finish">Finish</option>
                     </select>
                 </label>
 
@@ -39,6 +51,8 @@ export class Runlist {
                         <option value="struct2">Struct 2 Time</option>
                         <option value="blind">Blind Time</option>
                         <option value="stronghold">Stronghold Time</option>
+                        <option value="end">End Time</option>
+                        <option value="finish">Finish Time</option>
                         <option value="death">Death Reason</option>
                         <option value="duration">Duration</option>
                     </select>
@@ -128,6 +142,8 @@ export class Runlist {
             const struct2Entry = run.bastion && run.fort ? Math.max(run.bastion, run.fort) : 0;
             const blindEntry = run.blind ?? 0;
             const strongholdEntry = run.stronghold ?? 0;
+            const endEntry = run.end ?? 0;
+            const finishEntry = run.finish ?? 0;
 
             const splitFilter = this.element.querySelector(".runs-split-filter").value;
             if (splitFilter === "nether" && !netherEntry) continue;
@@ -135,6 +151,8 @@ export class Runlist {
             if (splitFilter === "struct2" && !struct2Entry) continue;
             if (splitFilter === "blind" && !blindEntry) continue;
             if (splitFilter === "stronghold" && !strongholdEntry) continue;
+            if (splitFilter === "end" && !endEntry) continue;
+            if (splitFilter === "finish" && !finishEntry) continue;
 
             const lastTime = seconds(run.runTime);
             const overworldTime = netherEntry ? netherEntry : lastTime;
@@ -142,16 +160,20 @@ export class Runlist {
             const struct1Time = struct1Entry ? (struct2Entry > 0 ? struct2Entry - struct1Entry : lastTime - struct1Entry) : 0;
             const struct2Time = struct2Entry ? (blindEntry > 0 ? blindEntry - struct2Entry : lastTime - struct2Entry) : 0;
             const blindTime = blindEntry ? (strongholdEntry > 0 ? strongholdEntry - blindEntry : lastTime - blindEntry) : 0;
-            const strongholdTime = strongholdEntry ? lastTime - strongholdEntry : 0;
+            const strongholdTime = strongholdEntry ? (endEntry > 0 ? endEntry - strongholdEntry : lastTime - strongholdEntry) : 0;
+            const endTime = endEntry ? (finishEntry > 0 ? finishEntry - endEntry : lastTime - endEntry) : 0;
+            const finishTime = finishEntry ? lastTime - finishEntry : 0;
 
 
             const segments = [
                 { w: overworldTime, color: "#55ee55" },
-                { w: netherTime, color: "#ee5555" },
-                { w: struct1Time, color: run.fort < run.bastion ? "#7a0000" : "#635b55" },
-                { w: struct2Time, color: run.fort > run.bastion ? "#7a0000" : "#635b55" },
-                { w: blindTime, color: "#8855ee" },
-                { w: strongholdTime, color: "#558877" }
+                { w: netherTime, color: C_NETHER },
+                { w: struct1Time, color: run.fort < run.bastion ? C_FORT : C_BASTION },
+                { w: struct2Time, color: run.fort > run.bastion ? C_FORT : C_BASTION },
+                { w: blindTime, color: C_BLIND },
+                { w: strongholdTime, color: C_STRONGHOLD },
+                { w: endTime, color: C_END },
+                { w: finishTime, color: C_FINISH }
             ].filter(s => s.w > 0);
 
             const deathIcon = !run.death ? "" :
@@ -168,7 +190,7 @@ export class Runlist {
             outRuns.push({
                 segments, deathIcon, r, runTime: run.runTime, date: run.date, vod: run.vod, timestamps: run.timestamps,
                 deathStart: run.deathStart, deathEnd: run.deathEnd,
-                netherEntry, struct1Entry, struct2Entry, blindEntry, strongholdEntry
+                netherEntry, struct1Entry, struct2Entry, blindEntry, strongholdEntry, endEntry, finishEntry
             });
         }
 
@@ -178,6 +200,9 @@ export class Runlist {
         else if (sort === "struct2") outRuns.sort((a, b) => (a.struct2Entry || Infinity) - (b.struct2Entry || Infinity));
         else if (sort === "blind") outRuns.sort((a, b) => (a.blindEntry || Infinity) - (b.blindEntry || Infinity));
         else if (sort === "stronghold") outRuns.sort((a, b) => (a.strongholdEntry || Infinity) - (b.strongholdEntry || Infinity));
+        else if (sort === "end") outRuns.sort((a, b) => (a.endEntry || Infinity) - (b.endEntry || Infinity));
+        else if (sort === "finish") outRuns.sort((a, b) => (a.finishEntry || Infinity) - (b.finishEntry || Infinity));
+
         else if (sort === "death") outRuns.sort((a, b) => b.deathIcon.localeCompare(a.deathIcon));
         else if (sort === "duration") outRuns.sort((a, b) => seconds(b.runTime) - seconds(a.runTime));
 
