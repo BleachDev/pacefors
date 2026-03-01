@@ -29,6 +29,10 @@ a {
     color: #a0a0ff;
 }
 
+h1 {
+    margin: 0;
+}
+
 h2 {
     margin: 6px;
 }
@@ -71,9 +75,8 @@ hr {
 }
 
 .header-text {
-    padding: 8px 12px;
+    padding: 0 12px;
     margin: 0;
-    display: inline-block;
 }
 
 #header-dropdown-btn {
@@ -109,13 +112,11 @@ hr {
         background-color: var(--background-accent);
         border-radius: 0 0 8px 8px;
         padding: 5px;
+        z-index: 10;
     }
 
     #header-tabs.open {
         display: flex;
-    }
-
-    #header-tabs > * {
     }
 }
 

@@ -17,11 +17,15 @@
 </head>
 <body>
     <div class="header">
-        <h1 class="header-text">Forsen Speedrun Tracker</h1>
+        <div style="display: flex; align-items: center; gap: 0 10px; padding: 8px 12px" id="header-title-group">
+            <h1 id="header-text">Forsen Speedrun Tracker</h1>
 
-        <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
-        <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
-        <span style="color: #80ee80; font-size: 10px">v1.3<br>doubters?</span>
+            <div>
+                <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
+                <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
+                <span style="color: #80ee80; font-size: 10px; display: inline-block">v1.3<br>doubters?</span>
+            </div>
+        </div>
 
         <div style="flex: 1"></div>
 
@@ -260,8 +264,11 @@
             }
         });
 
-        const onResize = () => document.querySelector(".header-text").innerText =
-            window.innerWidth < 1220 ? "Pacefors" : "Forsen Speedrun Tracker";
+        const onResize = () => {
+            document.getElementById("header-text").innerText =
+                window.innerWidth < 1220 ? "Pacefors" : "Forsen Speedrun Tracker";
+            document.getElementById("header-title-group").style.flexDirection = window.innerWidth < 530 ? "column" : "row";
+        }
         window.addEventListener("resize", onResize);
         onResize();
     </script>
