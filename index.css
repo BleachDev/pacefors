@@ -62,6 +62,7 @@ hr {
 
 .header {
     display: flex;
+    position: relative;
     flex-direction: row;
     gap: 10px;
     align-items: center;
@@ -75,7 +76,63 @@ hr {
     display: inline-block;
 }
 
+#header-dropdown-btn {
+    display: none;
+    font-size: 18px;
+
+    border-bottom: 3px solid var(--end);
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+#header-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-right: 15px;
+}
+
+/* Responsive: Switch to dropdown on smaller screens */
+@media (max-width: 950px) {
+    #header-dropdown-btn {
+        display: flex;
+    }
+
+    #header-tabs {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        flex-direction: column;
+        gap: 5px;
+        background-color: var(--background-accent);
+        border-radius: 0 0 8px 8px;
+        padding: 5px;
+    }
+
+    #header-tabs.open {
+        display: flex;
+    }
+
+    #header-tabs > * {
+    }
+}
+
 /* Tabs (radio + label) */
+.tab-like {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px;
+    padding: 0 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--background);
+    user-select: none;
+    transition-duration: 0.2s;
+}
+
 input[type="radio"] {
     position: absolute;
     opacity: 0;
@@ -83,21 +140,16 @@ input[type="radio"] {
 }
 
 label[for$="-tab"] {
-    display: inline-flex;
-    align-items: center;
     height: 32px;
     width: 120px;
     min-width: max-content;
-    padding: 0 12px;
-    cursor: pointer;
 
-    background: var(--background);
-    border-bottom: 6px solid #ccc;
-    user-select: none;
-    transition-duration: 0.2s;
+    border-bottom: 3px solid #ccc;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
 }
 
-label[for$="-tab"]:hover {
+label[for$="-tab"]:hover, .tab-like:hover {
     background: #303050;
 }
 
@@ -142,7 +194,7 @@ input[type="radio"]:checked + label[for$="-tab"] {
 .code-block {
     background-color: #2a2a2a;
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 4px;
     margin: 10px 0;
 }
 
@@ -239,7 +291,7 @@ input[type="radio"]:checked + label[for$="-tab"] {
     border: 1px solid var(--background-accent);
     background: var(--background);
     color: #eee;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 12px;
     z-index: 2;
 }
@@ -261,9 +313,7 @@ input[type="radio"]:checked + label[for$="-tab"] {
 #download-text {
     text-align: center;
     color: #aaa;
-    cursor: pointer;
-    font-size: 12px;
-    margin-right: 10px;
+    font-size: 11px;
 }
 
 #download-background {
@@ -281,7 +331,7 @@ input[type="radio"]:checked + label[for$="-tab"] {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    border-radius: 10px;
+    border-radius: 8px;
     background-color: var(--background);
     padding: 0 20px 20px 20px;
 }

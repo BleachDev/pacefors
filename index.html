@@ -19,33 +19,36 @@
     <div class="header">
         <h1 class="header-text">Forsen Speedrun Tracker</h1>
 
-        <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 5px;">
-            <div>
-                <input type="radio" id="summary-tab" name="header-tab" checked/>
-                <label for="summary-tab">Daily Summary</label>
-            </div>
-            <div>
-                <input type="radio" id="graphs-tab" name="header-tab"/>
-                <label for="graphs-tab">Odds/Graphs</label>
-            </div>
-            <div>
-                <input type="radio" id="individual-tab" name="header-tab"/>
-                <label for="individual-tab">All Runs</label>
-            </div>
-        </div>
-
         <img src="static/1528.webp" height="24" alt="15:28" style="vertical-align: text-bottom"/>
         <img src="static/SmugTime.webp" alt="SmugTime" style="vertical-align: text-bottom"/>
-        <div style="display: inline-block">
-            <span style="color: #80ee80; font-size: 10px">v1.3<br>doubters?</span>
-        </div>
+        <span style="color: #80ee80; font-size: 10px">v1.3<br>doubters?</span>
 
         <div style="flex: 1"></div>
 
-        <span id="download-text" onclick="document.getElementById('download-background').style.display = 'block'">Download<br>Dataset</span>
-        <a href="https://github.com/BleachDev/pacefors" style="margin-right: 20px;">
-            <img src="static/github.svg" height="28" alt="Source Code"/>
-        </a>
+        <div id="header-dropdown-btn" class="tab-like"></div>
+
+        <div id="header-tabs">
+            <div>
+                <input type="radio" id="summary-tab" name="header-tab" checked/>
+                <label class="tab-like" for="summary-tab">Daily Summary</label>
+            </div>
+            <div>
+                <input type="radio" id="graphs-tab" name="header-tab"/>
+                <label class="tab-like" for="graphs-tab">Odds/Graphs</label>
+            </div>
+            <div>
+                <input type="radio" id="individual-tab" name="header-tab"/>
+                <label class="tab-like" for="individual-tab">All Runs</label>
+            </div>
+
+            <div id="download-text" class="tab-like" onclick="document.getElementById('download-background').style.display = 'block'">
+                Download<br>Dataset
+            </div>
+
+            <a href="https://github.com/BleachDev/pacefors" class="tab-like">
+                <img src="static/github.svg" height="28" alt="Source Code"/>
+            </a>
+        </div>
     </div>
     <div id="header-runs"></div>
 
@@ -239,10 +242,28 @@
                 for (const e of document.getElementsByClassName(tab))
                     e.style.display = tab === selectedTab ? "block" : "none";
             });
+            document.getElementById("header-dropdown-btn").innerText = document.querySelector(`label[for="${selectedTab}"]`).innerText + " ☰";
         };
 
         tabs.forEach(tab => document.getElementById(tab).onchange = onChange);
         onChange();
+
+        // Init dropdown menu
+        const headerTabs = document.getElementById("header-tabs");
+        const dropdownBtn = document.getElementById("header-dropdown-btn");
+
+        dropdownBtn.addEventListener("click", () => headerTabs.classList.toggle("open"));
+
+        document.addEventListener("click", e => {
+            if (!headerTabs.contains(e.target) && e.target !== dropdownBtn) {
+                headerTabs.classList.remove("open");
+            }
+        });
+
+        const onResize = () => document.querySelector(".header-text").innerText =
+            window.innerWidth < 1220 ? "Pacefors" : "Forsen Speedrun Tracker";
+        window.addEventListener("resize", onResize);
+        onResize();
     </script>
 </body>
 </html>
